@@ -39,6 +39,7 @@ const Index = () => {
         </div>
       )}
       <TravelChecklist />
+      <Chatbot />
 
       {/* Footer */}
       <footer className="py-12 bg-foreground">
