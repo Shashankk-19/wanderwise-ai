@@ -3,6 +3,8 @@ import { MessageCircle, X, Send, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -72,6 +74,22 @@ const Chatbot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  // Load chat history when logged in
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setMessages(data.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })));
+        }
+      });
+  }, [user]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -103,7 +121,16 @@ const Chatbot = () => {
     await streamChat({
       messages: allMessages,
       onDelta: upsert,
-      onDone: () => setLoading(false),
+      onDone: async () => {
+        setLoading(false);
+        // Persist messages if logged in
+        if (user && assistantText) {
+          await supabase.from("chat_messages").insert([
+            { user_id: user.id, role: "user", content: text },
+            { user_id: user.id, role: "assistant", content: assistantText },
+          ]);
+        }
+      },
       onError: (msg) => {
         setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${msg}` }]);
         setLoading(false);
