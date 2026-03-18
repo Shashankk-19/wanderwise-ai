@@ -1,4 +1,4 @@
-import { Compass, LogOut, User } from "lucide-react";
+import { Compass, LogOut, Map } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -20,9 +20,13 @@ const Navbar = ({ onGetStarted }: NavbarProps) => {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-muted-foreground hidden sm:block">
-                {user.email}
-              </span>
+              <button
+                onClick={() => navigate("/saved-trips")}
+                className="h-9 px-4 rounded-lg text-sm font-body font-medium text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+              >
+                <Map className="w-4 h-4" />
+                <span className="hidden sm:inline">My Trips</span>
+              </button>
               <button
                 onClick={onGetStarted}
                 className="h-9 px-4 rounded-lg text-sm font-body font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
