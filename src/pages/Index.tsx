@@ -6,6 +6,7 @@ import ItineraryDisplay from "@/components/ItineraryDisplay";
 import BudgetBreakdown from "@/components/BudgetBreakdown";
 import HotelSuggestions from "@/components/HotelSuggestions";
 import TravelChecklist from "@/components/TravelChecklist";
+import Chatbot from "@/components/Chatbot";
 
 const Index = () => {
   const [tripData, setTripData] = useState<TripData | null>(null);
