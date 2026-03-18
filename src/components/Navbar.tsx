@@ -1,4 +1,4 @@
-import { Compass, LogOut, User } from "lucide-react";
+import { Compass, LogOut, Map } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
