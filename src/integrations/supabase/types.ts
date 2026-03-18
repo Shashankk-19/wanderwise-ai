@@ -14,7 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          favorite_destinations: string[] | null
+          id: string
+          preferred_budget: string | null
+          travel_style: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          favorite_destinations?: string[] | null
+          id?: string
+          preferred_budget?: string | null
+          travel_style?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          favorite_destinations?: string[] | null
+          id?: string
+          preferred_budget?: string | null
+          travel_style?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_trips: {
+        Row: {
+          budget: number
+          created_at: string
+          days: number
+          destination: string
+          id: string
+          preferences: string | null
+          user_id: string
+        }
+        Insert: {
+          budget: number
+          created_at?: string
+          days: number
+          destination: string
+          id?: string
+          preferences?: string | null
+          user_id: string
+        }
+        Update: {
+          budget?: number
+          created_at?: string
+          days?: number
+          destination?: string
+          id?: string
+          preferences?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
