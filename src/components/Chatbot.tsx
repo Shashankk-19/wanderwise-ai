@@ -74,6 +74,22 @@ const Chatbot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  // Load chat history when logged in
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setMessages(data.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })));
+        }
+      });
+  }, [user]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
