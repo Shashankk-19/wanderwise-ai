@@ -33,6 +33,8 @@ const TripForm = ({ onSubmit }: TripFormProps) => {
   const [days, setDays] = useState(5);
   const [budget, setBudget] = useState(1000);
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const togglePref = (id: string) => {
     setSelectedPrefs((prev) =>
@@ -40,10 +42,23 @@ const TripForm = ({ onSubmit }: TripFormProps) => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!destination.trim()) return;
-    onSubmit({ destination, days, budget, preferences: selectedPrefs });
+    const data = { destination, days, budget, preferences: selectedPrefs };
+    onSubmit(data);
+
+    // Save trip if logged in
+    if (user) {
+      await supabase.from("saved_trips").insert({
+        user_id: user.id,
+        destination: data.destination,
+        days: data.days,
+        budget: data.budget,
+        preferences: data.preferences.join(", "),
+      });
+      toast({ title: "Trip saved!", description: "You can find it in your saved trips." });
+    }
   };
 
   return (
