@@ -121,7 +121,16 @@ const Chatbot = () => {
     await streamChat({
       messages: allMessages,
       onDelta: upsert,
-      onDone: () => setLoading(false),
+      onDone: async () => {
+        setLoading(false);
+        // Persist messages if logged in
+        if (user && assistantText) {
+          await supabase.from("chat_messages").insert([
+            { user_id: user.id, role: "user", content: text },
+            { user_id: user.id, role: "assistant", content: assistantText },
+          ]);
+        }
+      },
       onError: (msg) => {
         setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${msg}` }]);
         setLoading(false);
