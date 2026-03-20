@@ -13,7 +13,12 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 const TRAVEL_STYLES = ["Adventure", "Relaxation", "Cultural", "Luxury", "Budget", "Family", "Solo", "Romantic"];
-const BUDGET_OPTIONS = ["Budget ($0-$50/day)", "Mid-range ($50-$150/day)", "Comfort ($150-$300/day)", "Luxury ($300+/day)"];
+const BUDGET_OPTIONS = [
+  "Budget ($0–$50 / ₹0–₹4,000 per day)",
+  "Mid-range ($50–$150 / ₹4,000–₹12,500 per day)",
+  "Comfort ($150–$300 / ₹12,500–₹25,000 per day)",
+  "Luxury ($300+ / ₹25,000+ per day)",
+];
 
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
