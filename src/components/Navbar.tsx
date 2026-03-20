@@ -28,6 +28,13 @@ const Navbar = ({ onGetStarted }: NavbarProps) => {
                 <span className="hidden sm:inline">My Trips</span>
               </button>
               <button
+                onClick={() => navigate("/profile")}
+                className="h-9 px-4 rounded-lg text-sm font-body font-medium text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </button>
+              <button
                 onClick={onGetStarted}
                 className="h-9 px-4 rounded-lg text-sm font-body font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
