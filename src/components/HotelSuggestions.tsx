@@ -2,37 +2,27 @@ import { motion } from "framer-motion";
 import { Star, MapPin, Wifi, Coffee, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TripData } from "./TripForm";
+import type { GeneratedItinerary } from "./ItineraryDisplay";
 
 interface HotelSuggestionsProps {
   tripData: TripData;
+  itinerary?: GeneratedItinerary;
 }
 
-const HotelSuggestions = ({ tripData }: HotelSuggestionsProps) => {
+const HotelSuggestions = ({ tripData, itinerary }: HotelSuggestionsProps) => {
+  // Collect unique hotels from itinerary
+  const aiHotels = itinerary?.days.flatMap((d) => d.hotels) || [];
+  const uniqueHotels = aiHotels.filter((h, i, arr) => arr.findIndex((x) => x.name === h.name) === i).slice(0, 6);
+
   const nightlyBudget = Math.round((tripData.budget * 0.35) / tripData.days);
 
-  const hotels = [
-    {
-      name: `${tripData.destination} Cozy Hostel`,
-      price: Math.round(nightlyBudget * 0.4),
-      rating: 4.2,
-      type: "Hostel",
-      amenities: [Wifi, Coffee],
-    },
-    {
-      name: `${tripData.destination} Boutique Inn`,
-      price: Math.round(nightlyBudget * 0.8),
-      rating: 4.5,
-      type: "Boutique Hotel",
-      amenities: [Wifi, Coffee, Car],
-    },
-    {
-      name: `${tripData.destination} Grand Hotel`,
-      price: Math.round(nightlyBudget * 1.2),
-      rating: 4.7,
-      type: "Hotel",
-      amenities: [Wifi, Coffee, Car],
-    },
+  const fallbackHotels = [
+    { name: `${tripData.destination} Cozy Hostel`, pricePerNight: `₹${Math.round(nightlyBudget * 0.4).toLocaleString("en-IN")}`, rating: 4.2 },
+    { name: `${tripData.destination} Boutique Inn`, pricePerNight: `₹${Math.round(nightlyBudget * 0.8).toLocaleString("en-IN")}`, rating: 4.5 },
+    { name: `${tripData.destination} Grand Hotel`, pricePerNight: `₹${Math.round(nightlyBudget * 1.2).toLocaleString("en-IN")}`, rating: 4.7 },
   ];
+
+  const hotels = uniqueHotels.length > 0 ? uniqueHotels : fallbackHotels;
 
   return (
     <section className="py-24 bg-secondary/30">
@@ -47,7 +37,7 @@ const HotelSuggestions = ({ tripData }: HotelSuggestionsProps) => {
             Where to Stay
           </h2>
           <p className="font-body text-muted-foreground text-lg">
-            Budget-friendly stays in {tripData.destination}
+            Recommended stays in {tripData.destination}
           </p>
         </motion.div>
 
@@ -61,14 +51,18 @@ const HotelSuggestions = ({ tripData }: HotelSuggestionsProps) => {
               transition={{ delay: idx * 0.1 }}
               className="bg-card rounded-2xl overflow-hidden shadow-[var(--shadow-card)] border border-border hover:shadow-lg transition-shadow duration-300 group"
             >
-              <div className="h-40 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <MapPin className="w-12 h-12 text-primary/40 group-hover:scale-110 transition-transform" />
+              <div className="h-40 overflow-hidden">
+                <img
+                  src={`https://source.unsplash.com/600x400/?${encodeURIComponent(tripData.destination)},hotel,resort`}
+                  alt={hotel.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
               </div>
               <div className="p-5 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-heading text-lg font-semibold text-foreground">{hotel.name}</h3>
-                    <p className="font-body text-xs text-muted-foreground">{hotel.type}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg">
                     <Star className="w-3.5 h-3.5 text-primary fill-primary" />
@@ -76,13 +70,13 @@ const HotelSuggestions = ({ tripData }: HotelSuggestionsProps) => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {hotel.amenities.map((Icon, i) => (
-                    <Icon key={i} className="w-4 h-4 text-muted-foreground" />
-                  ))}
+                  <Wifi className="w-4 h-4 text-muted-foreground" />
+                  <Coffee className="w-4 h-4 text-muted-foreground" />
+                  <Car className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <div className="flex items-end justify-between pt-2 border-t border-border">
                   <div>
-                    <p className="font-heading text-2xl font-bold text-foreground">${hotel.price}</p>
+                    <p className="font-heading text-2xl font-bold text-foreground">{hotel.pricePerNight}</p>
                     <p className="font-body text-xs text-muted-foreground">per night</p>
                   </div>
                   <Button variant="warm" size="sm">View</Button>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Calendar, DollarSign, Compass, Sparkles } from "lucide-react";
+import { MapPin, Calendar, IndianRupee, Compass, Sparkles, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,31 +8,43 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+export type TravelGroup = "solo" | "couple" | "family" | "friends";
+
 export interface TripData {
   destination: string;
   days: number;
   budget: number;
   preferences: string[];
+  travelGroup: TravelGroup;
 }
 
 interface TripFormProps {
   onSubmit: (data: TripData) => void;
+  isLoading?: boolean;
 }
 
 const PREFERENCES = [
-  { id: "culture", label: "🏛️ Culture & History", icon: "🏛️" },
-  { id: "nature", label: "🌿 Nature & Outdoors", icon: "🌿" },
-  { id: "food", label: "🍜 Food & Cuisine", icon: "🍜" },
-  { id: "adventure", label: "🧗 Adventure", icon: "🧗" },
-  { id: "relaxation", label: "🧘 Relaxation", icon: "🧘" },
-  { id: "nightlife", label: "🌙 Nightlife", icon: "🌙" },
+  { id: "culture", label: "🏛️ Culture & History" },
+  { id: "nature", label: "🌿 Nature & Outdoors" },
+  { id: "food", label: "🍜 Food & Cuisine" },
+  { id: "adventure", label: "🧗 Adventure" },
+  { id: "relaxation", label: "🧘 Relaxation" },
+  { id: "nightlife", label: "🌙 Nightlife" },
 ];
 
-const TripForm = ({ onSubmit }: TripFormProps) => {
+const GROUP_OPTIONS: { id: TravelGroup; label: string; emoji: string; desc: string }[] = [
+  { id: "solo", label: "Solo", emoji: "🧳", desc: "Just me" },
+  { id: "couple", label: "Couple", emoji: "💑", desc: "2 people" },
+  { id: "family", label: "Family", emoji: "👨‍👩‍👧‍👦", desc: "3-6 people" },
+  { id: "friends", label: "Friends", emoji: "👯", desc: "2-8 people" },
+];
+
+const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
   const [destination, setDestination] = useState("");
   const [days, setDays] = useState(5);
-  const [budget, setBudget] = useState(1000);
+  const [budget, setBudget] = useState(50000);
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
+  const [travelGroup, setTravelGroup] = useState<TravelGroup>("solo");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -45,10 +57,9 @@ const TripForm = ({ onSubmit }: TripFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!destination.trim()) return;
-    const data = { destination, days, budget, preferences: selectedPrefs };
+    const data: TripData = { destination, days, budget, preferences: selectedPrefs, travelGroup };
     onSubmit(data);
 
-    // Save trip if logged in
     if (user) {
       await supabase.from("saved_trips").insert({
         user_id: user.id,
@@ -94,11 +105,37 @@ const TripForm = ({ onSubmit }: TripFormProps) => {
               Destination
             </Label>
             <Input
-              placeholder="e.g. Bali, Tokyo, Paris..."
+              placeholder="e.g. Goa, Jaipur, Bali, Paris..."
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               className="h-12 text-base font-body bg-background"
             />
+          </div>
+
+          {/* Travel Group */}
+          <div className="space-y-3">
+            <Label className="font-body text-sm font-medium text-foreground flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              Who's traveling?
+            </Label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {GROUP_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setTravelGroup(opt.id)}
+                  className={`relative flex flex-col items-center gap-1.5 p-4 rounded-xl text-center transition-all duration-200 border-2 ${
+                    travelGroup === opt.id
+                      ? "bg-primary/10 border-primary shadow-sm"
+                      : "bg-background border-border hover:border-primary/30"
+                  }`}
+                >
+                  <span className="text-2xl">{opt.emoji}</span>
+                  <span className="font-body text-sm font-medium text-foreground">{opt.label}</span>
+                  <span className="font-body text-xs text-muted-foreground">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Days & Budget */}
@@ -119,13 +156,13 @@ const TripForm = ({ onSubmit }: TripFormProps) => {
             </div>
             <div className="space-y-2">
               <Label className="font-body text-sm font-medium text-foreground flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-primary" />
-                Budget (USD)
+                <IndianRupee className="w-4 h-4 text-primary" />
+                Budget (₹ INR)
               </Label>
               <Input
                 type="number"
-                min={100}
-                step={50}
+                min={5000}
+                step={5000}
                 value={budget}
                 onChange={(e) => setBudget(Number(e.target.value))}
                 className="h-12 text-base font-body bg-background"
@@ -157,9 +194,18 @@ const TripForm = ({ onSubmit }: TripFormProps) => {
             </div>
           </div>
 
-          <Button type="submit" variant="hero" size="xl" className="w-full">
-            <Sparkles className="w-5 h-5" />
-            Generate My Itinerary
+          <Button type="submit" variant="hero" size="xl" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                Generating your itinerary...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Generate My Itinerary
+              </>
+            )}
           </Button>
         </motion.form>
       </div>
