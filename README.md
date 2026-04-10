@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Welcome to your ai travel planner (WANDERLY) project
 
 TODO: Document your project here
