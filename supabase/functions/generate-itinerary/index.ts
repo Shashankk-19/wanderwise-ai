@@ -1,15 +1,21 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { status: 200, headers: corsHeaders });
 
   try {
-    const { destination, days, budget, preferences, travelGroup, energy, travelers, primaryPersonality } = await req.json();
+    const {
+      destination, days, budget, preferences, travelGroup,
+      energy, travelers, primaryPersonality,
+      moods, personalityProfile,
+    } = await req.json();
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -17,58 +23,91 @@ serve(async (req) => {
       `${i + 1}. ${t.name || `Traveler ${i + 1}`} — personality: ${t.personality}, budget: ${t.budgetComfort}, interests: ${(t.interests || []).join(", ") || "open"}`
     ).join("\n");
 
-    const energyRule = energy === "chill" ? "2-3 activities/day, long mid-day breaks, no early starts"
-      : energy === "packed" ? "5-6 activities/day, early starts, dense scheduling"
-      : "4 activities/day, balanced pacing, one break window";
+    const moodList = (moods || [energy] || ["balanced"]).join(", ");
+
+    const paceFromMoods = () => {
+      const m = moods || [];
+      if (m.includes("packed") || m.includes("dopamine-heavy") || m.includes("adventurous")) return "5-6 activities/day, early starts, dense scheduling";
+      if (m.includes("peaceful") || m.includes("healing") || m.includes("nature-detox") || m.includes("soulful")) return "2-3 activities/day, slow mornings, long breaks";
+      if (m.includes("luxury")) return "3-4 activities/day, spa windows, premium timing";
+      return "4 activities/day, balanced pacing, one mid-day break";
+    };
+
+    const personalityContext = personalityProfile ? `
+Traveler personality profile (from behavioral quiz):
+- Sleep type: ${personalityProfile.sleepType} (${personalityProfile.sleepType === "early-bird" ? "prefers morning starts" : personalityProfile.sleepType === "night-owl" ? "prefers late starts, evening activities" : "flexible"})
+- Food style: ${personalityProfile.foodStyle}
+- Planning style: ${personalityProfile.planningStyle}
+- Social battery: ${personalityProfile.socialBattery}
+- Photography interest: ${personalityProfile.photographyInterest}
+- Spending style: ${personalityProfile.spendingStyle}
+- Travel pace: ${personalityProfile.travelPace}
+- Weather preference: ${personalityProfile.weatherPref}
+- Crowd tolerance: ${personalityProfile.crowdTolerance}
+- Structure vs spontaneous: ${personalityProfile.structureVsSpontaneous}
+` : "";
 
     const prompt = `You are an emotionally-intelligent, premium AI travel planner for "Wanderly". Design a deeply personalized ${days}-day itinerary for ${destination}.
 
 Trip context:
 - Budget: ₹${budget} INR total
 - Group type: ${travelGroup}
-- Trip mood / primary personality: ${primaryPersonality}
-- Energy preference: ${energy} (${energyRule})
+- Primary trip personality: ${primaryPersonality}
+- Trip moods selected: ${moodList}
+- Scheduling pace: ${paceFromMoods()}
 - Trip-wide vibes: ${(preferences || []).join(", ") || "general"}
-
-Travelers (GROUP HARMONY — balance everyone's preferences so no one feels left out):
+${personalityContext}
+Travelers (GROUP HARMONY — balance everyone's preferences):
 ${travelerSummary || "Solo traveler"}
 
-CRITICAL REQUIREMENTS:
-1. Energy-aware scheduling: respect the energy rule strictly. Avoid back-to-back high-effort activities. Insert rest/comfort windows for chill/balanced.
-2. Hidden gems: each day MUST include at least one less-crowded local spot (not the top tourist trap) with a short reason it's special.
-3. Tourist trap & safety warnings: list 3–6 specific tourist traps, scams, overpriced spots, or unsafe-after-dark areas in ${destination}.
-4. Regret-prevention: highlight 2–3 commonly-missed experiences travelers regret skipping, plus 2 things that overrated and can be skipped.
-5. Realistic budget engine: include hidden costs travelers usually forget (tips, entry fees, transit surge, ATM fees, bottled water, sunscreen, etc.). Include a confidence score (0–100) reflecting how realistic the budget is for the chosen preferences, plus a one-line confidence reason.
-6. Group harmony: for each day, write 1–2 "personalizedMentions" naming specific travelers (e.g. "Sunrise trek added for Riya and Aman", "Quiet café break for Maya"). Use the actual names provided.
-7. Unique days — never repeat the same attraction or restaurant across days.
-8. Real places only — actual attractions, real restaurants, real hotels in ${destination} with coordinates.
-9. Personality fit — adapt activities to ${primaryPersonality}: explorer → off-beat, relaxer → slow + spa, foodie → food trails, thrill → adventure sports, culture → museums/heritage, social → nightlife/meetups.
+REQUIREMENTS:
+1. Mood-aware scheduling: if moods include "healing" or "peaceful" — start days slowly, add nature & silence moments. "Soulful" → include a spiritual or introspective activity daily. "Dopamine-heavy" → max fun, color, activity variety. "Luxury" → premium restaurants, spas, upscale hotels. "Nature-detox" → zero mall/city recommendations. "Romantic" → couple-specific sunset spots, intimate dining. "Productive-escape" → include coworking-friendly cafes. "Cultural-deep-dive" → prioritize museums, local artisans, heritage walks. "Budget-smart" → highlight free/cheap alternatives for every activity.
 
-Detect the destination theme (one of): "mountains", "beach", "nightlife", "spiritual", or "default".
+2. Personality-adaptive scheduling: use the personality profile above to fine-tune (if provided). Night owls get late-morning starts. Introverts get solo-friendly spots. Low crowd-tolerance travelers avoid peak hours with timing tips.
 
-Respond with valid JSON only, no markdown. Structure:
+3. Hidden gems: each day MUST include one less-known local spot with a specific reason it's special.
+
+4. Tourist traps & safety: list 4-6 specific scams, overpriced spots, unsafe areas in ${destination}.
+
+5. Detailed realistic budget with hidden costs — be highly specific:
+   - Include: local rickshaw/auto surge pricing, seasonal markup, tourist pricing vs local pricing gap, mandatory tips at specific venues, bottled water/day estimate, entry fee totals, emergency buffer (3-5%), festive season premium if applicable, forex conversion loss if international, app-based vs counter booking difference.
+
+6. Cost-saving suggestions: for each day, include 1-2 "costSavingTip" suggestions (e.g. "Take local bus instead of taxi — saves ₹300/day", "Visit X attraction before 9am for free/half-price entry").
+
+7. Group harmony: write 1-2 "personalizedMentions" per day citing specific traveler names.
+
+8. Real places only with coordinates. Unique per day — no repeats.
+
+9. Regret prevention: 2-3 must-do experiences + 2 skippable overhyped ones.
+
+10. Personality archetype fit: ${primaryPersonality} personality → explorer: off-beat; relaxer: spa+slow; foodie: food trails; thrill: adventure; culture: heritage; social: nightlife/meetups; soul wanderer: introspective/quiet spots; luxury nomad: premium; content creator: photogenic/unique backdrops.
+
+Detect destination theme: "mountains", "beach", "nightlife", "spiritual", or "default".
+
+Return valid JSON only (no markdown):
 {
   "destinationInfo": {
     "lat": number, "lng": number,
-    "description": "evocative 2-3 sentence intro",
-    "imageKeyword": "best image search keyword for this destination",
+    "description": "evocative 2-3 sentence intro matching the trip moods",
+    "imageKeyword": "best image keyword",
     "theme": "mountains|beach|nightlife|spiritual|default",
     "bestTimeToVisit": "string",
-    "vibe": "one-line emotional summary"
+    "vibe": "one-line emotional summary matching selected moods"
   },
   "days": [
     {
       "day": 1,
-      "theme": "Short theme",
+      "theme": "Short mood-aware theme",
       "energyScore": 1-10,
       "morning": { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
       "afternoon": { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
       "evening": { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
-      "restaurants": [{ "name": "...", "cuisine": "...", "priceRange": "₹...", "lat": n, "lng": n, "imageKeyword": "specific search term" }],
-      "hotels": [{ "name": "Real Hotel", "pricePerNight": "₹...", "rating": n, "lat": n, "lng": n, "imageKeyword": "specific search term" }],
-      "attractions": ["Place 1", "Place 2", "Place 3"],
-      "hiddenGem": { "name": "...", "why": "1-2 sentence reason", "lat": n, "lng": n },
-      "personalizedMentions": ["Sunrise trek added for Riya and Aman", "..."]
+      "costSavingTips": ["Take local bus instead of cab — saves ₹200", "..."],
+      "restaurants": [{ "name": "...", "cuisine": "...", "priceRange": "₹...", "lat": n, "lng": n }],
+      "hotels": [{ "name": "Real Hotel", "pricePerNight": "₹...", "rating": n, "lat": n, "lng": n }],
+      "attractions": ["Place 1", "Place 2"],
+      "hiddenGem": { "name": "...", "why": "1-2 sentences", "lat": n, "lng": n },
+      "personalizedMentions": ["..."]
     }
   ],
   "warnings": [
@@ -80,11 +119,17 @@ Respond with valid JSON only, no markdown. Structure:
   },
   "budgetBreakdown": {
     "accommodation": n, "food": n, "transport": n, "activities": n, "misc": n,
-    "hiddenCosts": [{ "label": "Entry fees", "estimate": n, "note": "short" }],
+    "hiddenCosts": [
+      { "label": "Auto-rickshaw surge (evening peak)", "estimate": n, "note": "Expect 1.5x-2x meter rate after 9pm" },
+      { "label": "Tourist pricing premium", "estimate": n, "note": "Foreigners/tourists often charged 2-3x" },
+      { "label": "Bottled water (daily)", "estimate": n, "note": "~₹30-50/bottle, 3-4/day" },
+      { "label": "Entry fees total", "estimate": n, "note": "All monuments and parks" },
+      { "label": "Emergency buffer (5%)", "estimate": n, "note": "Medical, last-minute changes" }
+    ],
     "confidenceScore": 0-100,
     "confidenceReason": "one line"
   },
-  "travelTips": ["tip 1", "tip 2", "tip 3"]
+  "travelTips": ["tip 1", "tip 2", "tip 3", "tip 4", "tip 5"]
 }`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

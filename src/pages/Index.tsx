@@ -9,6 +9,8 @@ import ItineraryRefiner from "@/components/ItineraryRefiner";
 import BudgetBreakdown from "@/components/BudgetBreakdown";
 import HotelSuggestions from "@/components/HotelSuggestions";
 import TravelChecklist from "@/components/TravelChecklist";
+import TravelerStories from "@/components/TravelerStories";
+import ThankYouScreen from "@/components/ThankYouScreen";
 import Chatbot from "@/components/Chatbot";
 import IntroAnimation from "@/components/IntroAnimation";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +22,7 @@ const Index = () => {
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [itinerary, setItinerary] = useState<GeneratedItinerary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
   const plannerRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -56,6 +59,7 @@ const Index = () => {
       if (!resp.ok) throw new Error("Failed to generate itinerary");
       const result: GeneratedItinerary = await resp.json();
       setItinerary(result);
+      setShowThankYou(true);
     } catch (err) {
       console.error(err);
       toast({ title: "Generation failed", description: "Could not generate your itinerary. Please try again.", variant: "destructive" });
@@ -67,6 +71,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <IntroAnimation />
+      {showThankYou && tripData && (
+        <ThankYouScreen
+          destination={tripData.destination}
+          onClose={() => setShowThankYou(false)}
+        />
+      )}
       <Navbar onGetStarted={scrollToPlanner} />
       <HeroSection onGetStarted={scrollToPlanner} />
       <div ref={plannerRef}>
@@ -91,7 +101,11 @@ const Index = () => {
         </AnimatePresence>
       </div>
 
-      <TravelChecklist />
+      <TravelerStories />
+      <TravelChecklist
+        destination={tripData?.destination}
+        tripType={itinerary?.destinationInfo?.theme || (tripData ? detectTheme(tripData.destination) : "default")}
+      />
       <Chatbot />
 
       <footer className="py-14 bg-primary">

@@ -1,8 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Luggage, FileText, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Circle, Luggage, FileText, ShieldCheck, Mountain, Waves, Flame, Leaf } from "lucide-react";
 
-const CHECKLIST = {
+interface TravelChecklistProps {
+  destination?: string;
+  tripType?: string; // mountains, beach, nightlife, spiritual, default
+}
+
+type ChecklistCategory = {
+  icon: React.ElementType;
+  title: string;
+  items: string[];
+};
+
+const BASE_CHECKLIST: Record<string, ChecklistCategory> = {
   packing: {
     icon: Luggage,
     title: "Packing Essentials",
@@ -20,8 +31,57 @@ const CHECKLIST = {
   },
 };
 
-const TravelChecklist = () => {
+const THEME_EXTRAS: Record<string, { icon: React.ElementType; title: string; items: string[] }> = {
+  mountains: {
+    icon: Mountain,
+    title: "Mountain Essentials",
+    items: ["Warm layers & thermal wear", "Waterproof trekking boots", "Altitude sickness medicine", "Trekking poles", "Headlamp with spare batteries", "High-SPF lip balm & sunscreen", "Emergency whistle", "Snacks & trail mix"],
+  },
+  beach: {
+    icon: Waves,
+    title: "Beach Essentials",
+    items: ["High-SPF reef-safe sunscreen", "Waterproof phone pouch", "Rashguard / swim cover-up", "Flip flops & water shoes", "After-sun lotion / aloe vera", "Insect repellent for evenings", "Dry bag for valuables", "Snorkeling gear (if not renting)"],
+  },
+  nightlife: {
+    icon: Flame,
+    title: "Nightlife Essentials",
+    items: ["Smart casual outfit options", "Comfortable yet stylish shoes", "Portable phone charger", "Cash in local currency", "ID / passport copy for entry", "Earplugs for light sleepers", "Eye mask for late-morning sleep", "Hydration tablets / electrolytes"],
+  },
+  spiritual: {
+    icon: Leaf,
+    title: "Spiritual Travel",
+    items: ["Modest clothing / head covering", "Comfortable sandals for temples", "Small offering items (flowers, incense)", "Journal for reflections", "Learn basic local greetings", "Silence your phone at sacred sites", "Donation cash in small bills", "Comfortable meditation cushion"],
+  },
+};
+
+function getChecklist(destination: string = "", tripType: string = "default") {
+  const dest = destination.toLowerCase();
+  let detectedType = tripType;
+
+  if (detectedType === "default" || !detectedType) {
+    if (["manali", "shimla", "leh", "ladakh", "munnar", "ooty", "trek", "mountain", "hill"].some((k) => dest.includes(k))) {
+      detectedType = "mountains";
+    } else if (["goa", "bali", "maldives", "andaman", "beach", "island", "phuket", "varkala"].some((k) => dest.includes(k))) {
+      detectedType = "beach";
+    } else if (["dubai", "las vegas", "bangkok", "ibiza", "miami", "berlin", "nightlife"].some((k) => dest.includes(k))) {
+      detectedType = "nightlife";
+    } else if (["varanasi", "rishikesh", "haridwar", "tirupati", "amritsar", "spiritual", "ashram", "temple"].some((k) => dest.includes(k))) {
+      detectedType = "spiritual";
+    }
+  }
+
+  const categories: Record<string, ChecklistCategory> = { ...BASE_CHECKLIST };
+  if (THEME_EXTRAS[detectedType]) {
+    categories.theme = THEME_EXTRAS[detectedType];
+  }
+
+  return { categories, detectedType };
+}
+
+const TravelChecklist = ({ destination = "", tripType = "default" }: TravelChecklistProps) => {
   const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const { categories, detectedType } = useMemo(() => getChecklist(destination, tripType), [destination, tripType]);
 
   const toggle = (item: string) => {
     setChecked((prev) => {
@@ -31,8 +91,16 @@ const TravelChecklist = () => {
     });
   };
 
-  const totalItems = Object.values(CHECKLIST).reduce((acc, cat) => acc + cat.items.length, 0);
+  const totalItems = Object.values(categories).reduce((acc, cat) => acc + cat.items.length, 0);
   const progress = Math.round((checked.size / totalItems) * 100);
+
+  const themeLabel: Record<string, string> = {
+    mountains: "Mountain trip",
+    beach: "Beach trip",
+    nightlife: "City & nightlife",
+    spiritual: "Spiritual journey",
+    default: "General travel",
+  };
 
   return (
     <section className="py-24 bg-background">
@@ -43,13 +111,15 @@ const TravelChecklist = () => {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Travel Checklist
+          <span className="inline-block px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium tracking-wide uppercase mb-4">
+            {themeLabel[detectedType] || "General travel"}
+          </span>
+          <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-3">
+            {destination ? `Pack smart for ${destination}` : "Travel Checklist"}
           </h2>
           <p className="font-body text-muted-foreground text-lg">
-            Don't forget anything important
+            {destination ? `Curated packing list for your ${themeLabel[detectedType]?.toLowerCase() || "trip"}.` : "Don't forget anything important."}
           </p>
-          {/* Progress */}
           <div className="mt-6 max-w-xs mx-auto">
             <div className="flex justify-between font-body text-sm text-muted-foreground mb-2">
               <span>{checked.size} of {totalItems} items</span>
@@ -66,21 +136,21 @@ const TravelChecklist = () => {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {Object.entries(CHECKLIST).map(([key, category], idx) => (
+        <div className={`grid gap-6 ${Object.keys(categories).length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"}`}>
+          {Object.entries(categories).map(([key, category], idx) => (
             <motion.div
               key={key}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="bg-card rounded-2xl p-6 shadow-[var(--shadow-card)] border border-border"
+              className="bg-card rounded-2xl p-6 shadow-soft border border-border"
             >
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <category.icon className="w-5 h-5 text-primary" />
                 </div>
-                <h3 className="font-heading text-lg font-semibold text-foreground">{category.title}</h3>
+                <h3 className="font-heading text-base font-semibold text-foreground leading-snug">{category.title}</h3>
               </div>
               <ul className="space-y-2">
                 {category.items.map((item) => (

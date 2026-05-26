@@ -6,6 +6,15 @@ import type { GeneratedItinerary } from "./ItineraryDisplay";
 
 interface Props { tripData: TripData; itinerary?: GeneratedItinerary; }
 
+const HOTEL_IMAGES = [
+  "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/1134176/pexels-photo-1134176.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=600",
+  "https://images.pexels.com/photos/1838554/pexels-photo-1838554.jpeg?auto=compress&cs=tinysrgb&w=600",
+];
+
 const HotelSuggestions = ({ tripData, itinerary }: Props) => {
   const aiHotels = itinerary?.days.flatMap((d) => d.hotels) || [];
   const unique = aiHotels.filter((h, i, arr) => arr.findIndex((x) => x.name === h.name) === i).slice(0, 6);
@@ -41,7 +50,7 @@ const HotelSuggestions = ({ tripData, itinerary }: Props) => {
             >
               <div className="h-44 overflow-hidden">
                 <img
-                  src={`https://source.unsplash.com/600x400/?${encodeURIComponent(hotel.imageKeyword || `${hotel.name} ${tripData.destination}`)},hotel`}
+                  src={HOTEL_IMAGES[idx % HOTEL_IMAGES.length]}
                   alt={hotel.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   loading="lazy"
