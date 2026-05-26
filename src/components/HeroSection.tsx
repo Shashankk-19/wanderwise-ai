@@ -1,78 +1,79 @@
 import { motion } from "framer-motion";
-import { MapPin, Calendar, DollarSign } from "lucide-react";
-import heroImage from "@/assets/hero-travel.jpg";
+import { MapPin, Sparkles } from "lucide-react";
 
-interface HeroSectionProps {
-  onGetStarted: () => void;
-}
+interface Props { onGetStarted: () => void; }
 
-const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
+const FLOATING_DESTINATIONS = [
+  { name: "Manali", img: "manali,himalaya", className: "top-[18%] left-[6%] w-32 h-44 float-slow" },
+  { name: "Goa", img: "goa,beach,sunset", className: "top-[60%] left-[4%] w-28 h-36 float-slower" },
+  { name: "Kyoto", img: "kyoto,temple", className: "top-[14%] right-[8%] w-32 h-44 float-slower" },
+  { name: "Varanasi", img: "varanasi,ghats", className: "top-[58%] right-[6%] w-28 h-36 float-slow" },
+];
+
+const HeroSection = ({ onGetStarted }: Props) => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <img
-          src={heroImage}
-          alt="Beautiful travel destination at golden hour"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/40 to-background" />
-      </div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background pt-20">
+      {/* Glow backdrop */}
+      <div className="absolute inset-0 bg-gradient-glow" />
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 text-center">
+      {/* Floating destination cards (hidden on mobile) */}
+      {FLOATING_DESTINATIONS.map((d, i) => (
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          key={d.name}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.2 + i * 0.15, duration: 0.8 }}
+          className={`hidden lg:block absolute rounded-2xl overflow-hidden shadow-lift border border-border/60 ${d.className}`}
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/20 text-primary-foreground text-sm font-body mb-6 backdrop-blur-sm border border-primary-foreground/10">
-            AI-Powered Travel Planning
+          <img
+            src={`https://source.unsplash.com/300x400/?${encodeURIComponent(d.img)}`}
+            alt={d.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
+          <div className="absolute bottom-2 left-2 text-primary-foreground text-xs font-heading font-semibold tracking-wide">{d.name}</div>
+        </motion.div>
+      ))}
+
+      <div className="relative z-10 container mx-auto px-6 text-center max-w-4xl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-medium tracking-wide uppercase mb-6 border border-accent/20">
+            <Sparkles className="w-3.5 h-3.5" /> Emotionally intelligent travel planning
           </span>
-          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold text-primary-foreground mb-6 leading-tight">
-            Plan Your Dream
+          <h1 className="font-heading text-5xl md:text-7xl lg:text-[5.5rem] font-bold text-foreground mb-6 leading-[1.05] tracking-tight">
+            Travel that finally
             <br />
-            <span className="text-primary">Adventure</span>
+            <span className="bg-gradient-sunset bg-clip-text text-transparent">feels like you</span>
           </h1>
-          <p className="font-body text-primary-foreground/80 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Generate complete personalized itineraries, optimize your budget, and discover hidden gems — all in one place.
+          <p className="font-body text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            Wanderly designs every hour around your personality, energy, and travel companions —
+            with hidden gems, real warnings, and a budget that actually adds up.
           </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }}
+          className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <button
             onClick={onGetStarted}
-            className="inline-flex items-center gap-2 h-14 px-10 text-lg rounded-xl font-body font-medium bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="inline-flex items-center gap-2 h-14 px-10 text-base rounded-2xl font-medium bg-primary text-primary-foreground shadow-lift hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
           >
-            <MapPin className="w-5 h-5" />
-            Start Planning
+            <MapPin className="w-5 h-5" /> Plan my trip
+          </button>
+          <button
+            onClick={onGetStarted}
+            className="inline-flex items-center gap-2 h-14 px-8 text-base rounded-2xl font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            See how it works →
           </button>
         </motion.div>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-16 flex flex-wrap justify-center gap-8 md:gap-16"
-        >
-          {[
-            { icon: MapPin, label: "Destinations", value: "500+" },
-            { icon: Calendar, label: "Trips Planned", value: "10K+" },
-            { icon: DollarSign, label: "Avg. Saved", value: "30%" },
-          ].map((stat) => (
-            <div key={stat.label} className="flex items-center gap-3">
-              <stat.icon className="w-5 h-5 text-primary" />
-              <div className="text-left">
-                <p className="font-heading text-2xl font-bold text-primary-foreground">{stat.value}</p>
-                <p className="font-body text-sm text-primary-foreground/60">{stat.label}</p>
-              </div>
-            </div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.9 }}
+          className="mt-20 flex flex-wrap justify-center gap-x-12 gap-y-4 text-sm text-muted-foreground">
+          {["Personality-aware", "Energy-paced", "Hidden gems", "Real warnings", "Group harmony"].map((tag) => (
+            <span key={tag} className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" /> {tag}
+            </span>
           ))}
         </motion.div>
       </div>
