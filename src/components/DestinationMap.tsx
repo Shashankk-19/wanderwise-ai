@@ -15,9 +15,9 @@ interface DestinationMapProps {
 }
 
 const MARKER_COLORS: Record<string, string> = {
-  attraction: "#e67e22",
-  restaurant: "#e74c3c",
-  hotel: "#3498db",
+  attraction: "hsl(18, 92%, 58%)",   // sunset
+  restaurant: "hsl(178, 65%, 38%)",  // teal
+  hotel: "hsl(220, 55%, 16%)",       // navy
 };
 
 const MARKER_EMOJI: Record<string, string> = {
