@@ -3,9 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import TripForm, { type TripData } from "@/components/TripForm";
-import { type GeneratedItinerary } from "@/components/ItineraryDisplay";
+import ItineraryDisplay, { type GeneratedItinerary } from "@/components/ItineraryDisplay";
 import ItinerarySkeleton from "@/components/ItinerarySkeleton";
-import CinematicShell from "@/components/CinematicShell";
+import ItineraryRefiner from "@/components/ItineraryRefiner";
+import BudgetBreakdown from "@/components/BudgetBreakdown";
+import HotelSuggestions from "@/components/HotelSuggestions";
+import TravelChecklist from "@/components/TravelChecklist";
 import Chatbot from "@/components/Chatbot";
 import IntroAnimation from "@/components/IntroAnimation";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +26,7 @@ const Index = () => {
 
   const scrollToPlanner = () => plannerRef.current?.scrollIntoView({ behavior: "smooth" });
 
+  // Dynamic destination theme
   useEffect(() => {
     if (!tripData || !itinerary) return;
     const theme = (itinerary.destinationInfo.theme as any) || detectTheme(tripData.destination);
@@ -35,7 +39,9 @@ const Index = () => {
     setLoading(true);
     setItinerary(null);
 
+    // Pre-apply theme guess immediately for cinematic feel
     applyTheme(detectTheme(data.destination));
+
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 150);
 
     try {
@@ -58,26 +64,14 @@ const Index = () => {
     }
   };
 
-  const reset = () => {
-    setItinerary(null);
-    setTripData(null);
-    applyTheme("default");
-    setTimeout(() => plannerRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <IntroAnimation />
       <Navbar onGetStarted={scrollToPlanner} />
-
-      {!itinerary && (
-        <>
-          <HeroSection onGetStarted={scrollToPlanner} />
-          <div ref={plannerRef}>
-            <TripForm onSubmit={handleSubmit} isLoading={loading} />
-          </div>
-        </>
-      )}
+      <HeroSection onGetStarted={scrollToPlanner} />
+      <div ref={plannerRef}>
+        <TripForm onSubmit={handleSubmit} isLoading={loading} />
+      </div>
 
       <div ref={resultsRef}>
         <AnimatePresence mode="wait">
@@ -87,33 +81,25 @@ const Index = () => {
             </motion.div>
           )}
           {!loading && tripData && itinerary && (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0, scale: 0.98, filter: "blur(6px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <CinematicShell
-                tripData={tripData}
-                itinerary={itinerary}
-                onUpdateItinerary={setItinerary}
-                onReset={reset}
-              />
+            <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <ItineraryDisplay tripData={tripData} itinerary={itinerary} />
+              <ItineraryRefiner tripData={tripData} itinerary={itinerary} onUpdate={setItinerary} />
+              <BudgetBreakdown tripData={tripData} itinerary={itinerary} />
+              <HotelSuggestions tripData={tripData} itinerary={itinerary} />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      <TravelChecklist />
       <Chatbot />
 
-      {!itinerary && (
-        <footer className="py-14 bg-primary">
-          <div className="container mx-auto px-6 text-center">
-            <p className="font-heading text-2xl font-bold text-primary-foreground mb-2">Wanderly</p>
-            <p className="font-body text-sm text-primary-foreground/60">Emotionally intelligent travel, designed around you.</p>
-          </div>
-        </footer>
-      )}
+      <footer className="py-14 bg-primary">
+        <div className="container mx-auto px-6 text-center">
+          <p className="font-heading text-2xl font-bold text-primary-foreground mb-2">Wanderly</p>
+          <p className="font-body text-sm text-primary-foreground/60">Emotionally intelligent travel, designed around you.</p>
+        </div>
+      </footer>
     </div>
   );
 };

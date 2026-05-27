@@ -6,109 +6,101 @@
 
 @layer base {
   :root {
-    /* Cozy peachy-brown warm palette */
-    --background: 28 45% 95%;          /* warm peach cream */
-    --foreground: 20 28% 16%;          /* deep cocoa */
+    /* Off-white, deep navy, teal, sunset orange */
+    --background: 36 33% 97%;
+    --foreground: 220 45% 12%;
 
-    --card: 30 50% 97%;
-    --card-foreground: 20 28% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 45% 12%;
 
-    --popover: 30 50% 97%;
-    --popover-foreground: 20 28% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 45% 12%;
 
-    --primary: 18 38% 28%;             /* roasted brown */
-    --primary-foreground: 32 60% 96%;
+    --primary: 220 55% 16%;            /* deep navy */
+    --primary-foreground: 36 33% 97%;
 
-    --secondary: 28 40% 90%;
-    --secondary-foreground: 20 28% 18%;
+    --secondary: 180 35% 94%;
+    --secondary-foreground: 220 45% 14%;
 
-    --muted: 28 30% 88%;
-    --muted-foreground: 22 18% 38%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 12% 42%;
 
-    --accent: 22 78% 60%;              /* warm peach */
-    --accent-foreground: 20 35% 14%;
+    --accent: 178 65% 38%;             /* teal */
+    --accent-foreground: 36 33% 97%;
 
-    --sunset: 12 70% 56%;              /* terracotta */
-    --sunset-foreground: 32 60% 96%;
+    --sunset: 18 92% 58%;              /* warm sunset orange */
+    --sunset-foreground: 36 33% 97%;
 
     --destructive: 0 72% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 28 30% 85%;
-    --input: 28 30% 85%;
-    --ring: 22 78% 60%;
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 178 65% 38%;
 
     --radius: 1rem;
 
-    --sidebar-background: 28 45% 95%;
-    --sidebar-foreground: 20 28% 16%;
-    --sidebar-primary: 18 38% 28%;
-    --sidebar-primary-foreground: 32 60% 96%;
-    --sidebar-accent: 28 40% 90%;
-    --sidebar-accent-foreground: 20 28% 18%;
-    --sidebar-border: 28 30% 85%;
-    --sidebar-ring: 22 78% 60%;
+    --sidebar-background: 36 33% 97%;
+    --sidebar-foreground: 220 45% 12%;
+    --sidebar-primary: 220 55% 16%;
+    --sidebar-primary-foreground: 36 33% 97%;
+    --sidebar-accent: 180 35% 94%;
+    --sidebar-accent-foreground: 220 45% 14%;
+    --sidebar-border: 220 14% 90%;
+    --sidebar-ring: 178 65% 38%;
 
     --font-heading: 'Poppins', sans-serif;
     --font-body: 'DM Sans', sans-serif;
 
-    --gradient-sunset: linear-gradient(135deg, hsl(22 85% 62%), hsl(12 72% 54%));
-    --gradient-ocean:  linear-gradient(135deg, hsl(18 38% 28%), hsl(22 65% 50%));
-    --gradient-warm:   linear-gradient(135deg, hsl(28 70% 88%), hsl(18 55% 76%));
-    --gradient-hero:   linear-gradient(180deg, hsl(20 35% 8% / 0.30) 0%, hsl(20 35% 8% / 0.85) 100%);
-    --gradient-glow:   radial-gradient(circle at 25% 15%, hsl(22 80% 70% / 0.35), transparent 55%),
-                       radial-gradient(circle at 80% 85%, hsl(12 70% 60% / 0.28), transparent 55%);
+    --gradient-sunset: linear-gradient(135deg, hsl(18 92% 58%), hsl(8 88% 56%));
+    --gradient-ocean: linear-gradient(135deg, hsl(220 55% 16%), hsl(178 65% 38%));
+    --gradient-hero: linear-gradient(180deg, hsl(220 55% 8% / 0.55) 0%, hsl(220 55% 8% / 0.85) 100%);
+    --gradient-glow: radial-gradient(circle at 30% 20%, hsl(178 65% 38% / 0.25), transparent 60%),
+                     radial-gradient(circle at 80% 80%, hsl(18 92% 58% / 0.2), transparent 55%);
 
-    --shadow-soft: 0 1px 2px hsl(20 35% 14% / 0.05), 0 8px 24px -8px hsl(20 35% 14% / 0.10);
-    --shadow-lift: 0 4px 16px -6px hsl(20 35% 14% / 0.10), 0 24px 56px -18px hsl(20 35% 14% / 0.20);
-    --shadow-glow: 0 0 0 1px hsl(22 78% 60% / 0.28), 0 16px 48px -10px hsl(22 78% 60% / 0.45);
+    --shadow-soft: 0 1px 2px hsl(220 45% 12% / 0.04), 0 8px 24px -8px hsl(220 45% 12% / 0.08);
+    --shadow-lift: 0 4px 12px -4px hsl(220 45% 12% / 0.08), 0 20px 48px -16px hsl(220 45% 12% / 0.16);
+    --shadow-glow: 0 0 0 1px hsl(178 65% 38% / 0.2), 0 12px 40px -8px hsl(178 65% 38% / 0.35);
+
+    /* Destination themes — switched via [data-theme] on root */
   }
 
+  /* Dynamic destination themes */
   [data-theme="mountains"] {
-    --background: 28 30% 93%;
-    --foreground: 215 30% 18%;
-    --primary: 215 35% 24%;
-    --accent: 195 45% 48%;
-    --sunset: 18 50% 60%;
-    --muted: 210 22% 88%;
-    --gradient-glow: radial-gradient(circle at 25% 15%, hsl(200 50% 75% / 0.40), transparent 55%),
-                     radial-gradient(circle at 80% 85%, hsl(28 60% 72% / 0.28), transparent 55%);
+    --background: 200 25% 95%;
+    --foreground: 215 40% 18%;
+    --primary: 215 45% 22%;
+    --accent: 195 50% 45%;
+    --sunset: 200 30% 65%;
   }
   [data-theme="beach"] {
-    --background: 32 65% 94%;
-    --foreground: 22 45% 18%;
-    --primary: 14 60% 34%;
-    --accent: 32 88% 58%;
+    --background: 36 60% 96%;
+    --foreground: 22 50% 18%;
+    --primary: 12 65% 35%;
+    --accent: 32 90% 55%;
     --sunset: 18 92% 58%;
-    --gradient-glow: radial-gradient(circle at 25% 15%, hsl(32 90% 72% / 0.45), transparent 55%),
-                     radial-gradient(circle at 80% 85%, hsl(18 92% 65% / 0.35), transparent 55%);
   }
   [data-theme="nightlife"] {
-    --background: 280 30% 8%;
-    --foreground: 28 35% 92%;
-    --card: 280 30% 12%;
-    --card-foreground: 28 35% 92%;
-    --primary: 300 70% 60%;
-    --primary-foreground: 280 30% 8%;
-    --accent: 32 90% 62%;
-    --sunset: 320 80% 60%;
-    --muted: 280 22% 16%;
-    --muted-foreground: 28 18% 70%;
-    --border: 280 22% 22%;
-    --secondary: 280 22% 14%;
-    --secondary-foreground: 28 35% 92%;
-    --gradient-glow: radial-gradient(circle at 25% 15%, hsl(300 90% 60% / 0.30), transparent 55%),
-                     radial-gradient(circle at 80% 85%, hsl(32 90% 60% / 0.22), transparent 55%);
+    --background: 240 25% 8%;
+    --foreground: 280 20% 95%;
+    --card: 240 25% 12%;
+    --card-foreground: 280 20% 95%;
+    --primary: 290 80% 60%;
+    --primary-foreground: 240 25% 8%;
+    --accent: 180 90% 55%;
+    --sunset: 320 85% 60%;
+    --muted: 240 20% 16%;
+    --muted-foreground: 240 10% 65%;
+    --border: 240 20% 20%;
+    --secondary: 240 20% 14%;
+    --secondary-foreground: 280 20% 95%;
   }
   [data-theme="spiritual"] {
-    --background: 36 45% 94%;
-    --foreground: 30 30% 20%;
-    --primary: 30 35% 26%;
-    --accent: 38 55% 52%;
-    --sunset: 24 60% 56%;
-    --muted: 36 30% 88%;
-    --gradient-glow: radial-gradient(circle at 25% 15%, hsl(38 70% 78% / 0.45), transparent 55%),
-                     radial-gradient(circle at 80% 85%, hsl(24 60% 70% / 0.32), transparent 55%);
+    --background: 38 35% 96%;
+    --foreground: 30 25% 20%;
+    --primary: 30 25% 25%;
+    --accent: 40 40% 55%;
+    --sunset: 28 55% 60%;
   }
 }
 
@@ -119,7 +111,6 @@
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
-    transition: background-color 0.8s ease, color 0.8s ease;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
@@ -132,7 +123,6 @@
   .bg-sunset { background-color: hsl(var(--sunset)); }
   .bg-gradient-sunset { background-image: var(--gradient-sunset); }
   .bg-gradient-ocean { background-image: var(--gradient-ocean); }
-  .bg-gradient-warm { background-image: var(--gradient-warm); }
   .bg-gradient-hero { background-image: var(--gradient-hero); }
   .bg-gradient-glow { background-image: var(--gradient-glow); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
@@ -147,54 +137,20 @@
     box-shadow: var(--shadow-lift);
   }
 
-  /* Glowing active state for primary CTAs / tabs */
-  .active-glow {
-    box-shadow: 0 0 0 1px hsl(var(--accent) / 0.35), 0 0 28px hsl(var(--accent) / 0.45);
-    animation: glow-pulse 2.6s ease-in-out infinite;
-  }
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 0 1px hsl(var(--accent) / 0.35), 0 0 22px hsl(var(--accent) / 0.35); }
-    50%      { box-shadow: 0 0 0 1px hsl(var(--accent) / 0.55), 0 0 36px hsl(var(--accent) / 0.55); }
-  }
-
-  /* Ken Burns slow image pan */
-  .kenburns img, img.kenburns {
-    animation: kenburns 18s ease-in-out infinite alternate;
-    transform-origin: center center;
-  }
-  @keyframes kenburns {
-    0%   { transform: scale(1)   translate(0,0); }
-    100% { transform: scale(1.12) translate(-1.5%, -1%); }
-  }
-
-  /* Cinematic pan-in */
-  .cinematic-pan {
-    animation: cinematic-pan 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  @keyframes cinematic-pan {
-    0%   { opacity: 0; transform: scale(1.08) translateY(12px); filter: blur(8px); }
-    100% { opacity: 1; transform: scale(1) translateY(0);       filter: blur(0); }
-  }
-
-  /* Quote rise */
-  .quote-rise { animation: quote-rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-  @keyframes quote-rise {
-    from { opacity: 0; transform: translateY(20px); letter-spacing: 0.04em; }
-    to   { opacity: 1; transform: translateY(0);    letter-spacing: 0;      }
-  }
-
   .route-line {
     stroke-dasharray: 8 8;
     animation: route-flow 1.4s linear infinite;
   }
-  @keyframes route-flow { to { stroke-dashoffset: -32; } }
-
-  .float-slow   { animation: float-slow 7s ease-in-out infinite; }
-  .float-slower { animation: float-slow 11s ease-in-out infinite; }
-  @keyframes float-slow {
-    0%,100% { transform: translateY(0) rotate(0deg); }
-    50%     { transform: translateY(-14px) rotate(1.5deg); }
+  @keyframes route-flow {
+    to { stroke-dashoffset: -32; }
   }
+
+  .float-slow { animation: float-slow 7s ease-in-out infinite; }
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(1.5deg); }
+  }
+  .float-slower { animation: float-slow 11s ease-in-out infinite; }
 
   .shimmer {
     background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--secondary)) 40%, hsl(var(--muted)) 80%);
@@ -204,16 +160,5 @@
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
-  }
-
-  /* Confetti dot for thank-you screen */
-  .confetti-dot {
-    position: absolute; border-radius: 9999px;
-    animation: confetti-fall 6s linear infinite;
-  }
-  @keyframes confetti-fall {
-    0%   { transform: translateY(-10vh) rotate(0deg);   opacity: 0; }
-    10%  { opacity: 1; }
-    100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
   }
 }

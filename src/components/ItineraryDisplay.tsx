@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { MapPin, Sun, Moon, Camera, Utensils, Hotel, Lightbulb, Navigation, AlertTriangle, Shield, Gem, Heart, ThumbsDown, ThumbsUp, ExternalLink } from "lucide-react";
+import { MapPin, Sun, Moon, Camera, Utensils, Hotel, Lightbulb, Navigation, Sparkles, AlertTriangle, Shield, Gem, Heart, ThumbsDown, ThumbsUp, Battery } from "lucide-react";
 import type { TripData } from "./TripForm";
 import DestinationMap from "./DestinationMap";
-import { unsplashImg, onImgError, mapsLink } from "@/lib/imageFallback";
 
 interface TimeSlot {
   activity: string;
@@ -19,6 +18,7 @@ interface HotelInfo { name: string; pricePerNight: string; rating: number; lat: 
 export interface ItineraryDay {
   day: number;
   theme: string;
+  energyScore?: number;
   morning: TimeSlot;
   afternoon: TimeSlot;
   evening: TimeSlot;
@@ -31,11 +31,6 @@ export interface ItineraryDay {
 
 export interface Warning { type: "scam" | "trap" | "unsafe" | "overpriced"; title: string; detail: string; severity: "low" | "medium" | "high"; }
 
-export interface HiddenCost { label: string; estimate: number; low?: number; high?: number; note?: string; }
-export interface CostSaver { title: string; saving: string; category: string; tip: string; lat?: number; lng?: number; }
-export interface ChecklistCategory { category: string; items: string[]; }
-export interface TravelerStory { title: string; snippet: string; moodTag?: string; author?: string; }
-
 export interface GeneratedItinerary {
   destinationInfo: {
     lat: number; lng: number;
@@ -43,7 +38,6 @@ export interface GeneratedItinerary {
     imageKeyword: string;
     theme?: "mountains" | "beach" | "nightlife" | "spiritual" | "default";
     bestTimeToVisit?: string;
-    weatherSummary?: string;
     vibe?: string;
   };
   days: ItineraryDay[];
@@ -51,21 +45,18 @@ export interface GeneratedItinerary {
   regretPrevention?: { dontMiss: string[]; skippable: string[] };
   budgetBreakdown: {
     accommodation: number; food: number; transport: number; activities: number; misc: number;
-    hiddenCosts?: HiddenCost[];
+    hiddenCosts?: { label: string; estimate: number; note?: string }[];
     confidenceScore?: number;
     confidenceReason?: string;
   };
-  costSavers?: CostSaver[];
-  packingChecklist?: ChecklistCategory[];
-  travelerStories?: TravelerStory[];
   travelTips: string[];
 }
 
-interface ItineraryDisplayProps { tripData: TripData; itinerary: GeneratedItinerary; embedded?: boolean; }
+interface ItineraryDisplayProps { tripData: TripData; itinerary: GeneratedItinerary; }
 
 const effortColor = (e?: string) => e === "high" ? "text-sunset" : e === "medium" ? "text-accent" : "text-muted-foreground";
 
-const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayProps) => {
+const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
   const allMarkers = itinerary.days.flatMap((day) => [
     { lat: day.morning.lat, lng: day.morning.lng, label: day.morning.place, type: "attraction" as const },
     { lat: day.afternoon.lat, lng: day.afternoon.lng, label: day.afternoon.place, type: "attraction" as const },
@@ -74,18 +65,19 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
     ...day.hotels.map((h) => ({ lat: h.lat, lng: h.lng, label: h.name, type: "hotel" as const })),
   ]);
 
-  const heroImg = unsplashImg(`${itinerary.destinationInfo.imageKeyword || tripData.destination},landscape,travel`, 1600, 900);
+  const heroImg = `https://source.unsplash.com/1600x900/?${encodeURIComponent(itinerary.destinationInfo.imageKeyword || tripData.destination)},landscape,travel`;
 
   return (
-    <section className={embedded ? "py-6" : "py-20 bg-secondary/40"}>
+    <section className="py-20 bg-secondary/40">
       <div className="container mx-auto px-6 max-w-5xl">
         {/* Cinematic hero */}
         <motion.div
-          initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="relative rounded-3xl overflow-hidden mb-10 h-72 md:h-[420px] shadow-lift kenburns"
+          className="relative rounded-3xl overflow-hidden mb-10 h-72 md:h-[420px] shadow-lift"
         >
-          <img src={heroImg} alt={tripData.destination} onError={onImgError} className="w-full h-full object-cover" />
+          <img src={heroImg} alt={tripData.destination} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-hero" />
           <div className="absolute bottom-8 left-8 right-8">
             {itinerary.destinationInfo.vibe && (
@@ -103,9 +95,8 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
               <Chip>📅 {tripData.days} days</Chip>
               <Chip>💰 ₹{tripData.budget.toLocaleString("en-IN")}</Chip>
               <Chip className="capitalize">👥 {tripData.travelGroup}</Chip>
-              {tripData.behavioralProfile?.derivedArchetype && <Chip>✨ {tripData.behavioralProfile.derivedArchetype}</Chip>}
+              <Chip className="capitalize">⚡ {tripData.energy}</Chip>
               {itinerary.destinationInfo.bestTimeToVisit && <Chip>🗓 {itinerary.destinationInfo.bestTimeToVisit}</Chip>}
-              {itinerary.destinationInfo.weatherSummary && <Chip>🌤 {itinerary.destinationInfo.weatherSummary}</Chip>}
             </div>
           </div>
         </motion.div>
@@ -158,36 +149,43 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
               className="lift-card bg-card rounded-3xl overflow-hidden shadow-soft border border-border"
             >
               <div className="bg-gradient-ocean px-6 py-5 text-primary-foreground">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-primary-foreground/20 backdrop-blur flex items-center justify-center font-heading font-bold">
-                    {day.day}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-primary-foreground/20 backdrop-blur flex items-center justify-center font-heading font-bold">
+                      {day.day}
+                    </div>
+                    <div>
+                      <h3 className="font-heading text-xl font-semibold">Day {day.day}</h3>
+                      <p className="font-body text-sm opacity-80">{day.theme}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-heading text-xl font-semibold">Day {day.day}</h3>
-                    <p className="font-body text-sm opacity-80">{day.theme}</p>
-                  </div>
+                  {day.energyScore != null && (
+                    <div className="flex items-center gap-1.5 bg-primary-foreground/15 px-3 py-1.5 rounded-full text-xs backdrop-blur">
+                      <Battery className="w-3.5 h-3.5" /> Energy {day.energyScore}/10
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="p-6 space-y-5">
                 {day.personalizedMentions && day.personalizedMentions.length > 0 && (
-                  <div className="rounded-xl bg-accent/10 border border-accent/25 p-4">
+                  <div className="rounded-xl bg-accent/8 border border-accent/20 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Heart className="w-4 h-4 text-accent" />
                       <p className="font-heading font-semibold text-sm">Tailored for your group</p>
                     </div>
                     <ul className="space-y-1">
                       {day.personalizedMentions.map((m, i) => (
-                        <li key={i} className="text-sm text-foreground/85 flex gap-2"><span className="text-accent">✦</span>{m}</li>
+                        <li key={i} className="text-sm text-foreground/80 flex gap-2"><span className="text-accent">✦</span>{m}</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
                 <div className="grid md:grid-cols-3 gap-3">
-                  <TimeBlock icon={Sun} label="Morning" slot={day.morning} dest={tripData.destination} />
-                  <TimeBlock icon={Camera} label="Afternoon" slot={day.afternoon} dest={tripData.destination} />
-                  <TimeBlock icon={Moon} label="Evening" slot={day.evening} dest={tripData.destination} />
+                  <TimeBlock icon={Sun} label="Morning" slot={day.morning} />
+                  <TimeBlock icon={Camera} label="Afternoon" slot={day.afternoon} />
+                  <TimeBlock icon={Moon} label="Evening" slot={day.evening} />
                 </div>
 
                 {day.hiddenGem && (
@@ -195,12 +193,6 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
                     <div className="flex items-center gap-2 mb-1">
                       <Gem className="w-4 h-4 text-sunset" />
                       <p className="font-heading font-semibold text-sm">Hidden gem · {day.hiddenGem.name}</p>
-                      <a
-                        href={mapsLink(day.hiddenGem.name, tripData.destination)} target="_blank" rel="noreferrer"
-                        className="ml-auto text-xs text-sunset hover:underline flex items-center gap-1"
-                      >
-                        Maps <ExternalLink className="w-3 h-3" />
-                      </a>
                     </div>
                     <p className="text-xs text-muted-foreground">{day.hiddenGem.why}</p>
                   </div>
@@ -208,12 +200,9 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
 
                 <div className="flex flex-wrap gap-2">
                   {day.attractions.map((spot) => (
-                    <a
-                      key={spot} href={mapsLink(spot, tripData.destination)} target="_blank" rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs hover:bg-accent/20 transition-colors"
-                    >
+                    <span key={spot} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">
                       <MapPin className="w-3 h-3" /> {spot}
-                    </a>
+                    </span>
                   ))}
                 </div>
 
@@ -224,16 +213,13 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
                         <Utensils className="w-3 h-3" /> Where to Eat
                       </p>
                       {day.restaurants.map((r) => (
-                        <a
-                          key={r.name} href={mapsLink(r.name, tripData.destination)} target="_blank" rel="noreferrer"
-                          className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60 hover:border-accent/50 hover:shadow-soft transition-all"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{r.name}</p>
+                        <div key={r.name} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60">
+                          <div>
+                            <p className="text-sm font-medium">{r.name}</p>
                             <p className="text-xs text-muted-foreground">{r.cuisine}</p>
                           </div>
-                          <span className="text-xs text-accent font-medium shrink-0 ml-2">{r.priceRange}</span>
-                        </a>
+                          <span className="text-xs text-accent font-medium">{r.priceRange}</span>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -243,16 +229,13 @@ const ItineraryDisplay = ({ tripData, itinerary, embedded }: ItineraryDisplayPro
                         <Hotel className="w-3 h-3" /> Where to Stay
                       </p>
                       {day.hotels.map((h) => (
-                        <a
-                          key={h.name} href={mapsLink(h.name, tripData.destination)} target="_blank" rel="noreferrer"
-                          className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60 hover:border-accent/50 hover:shadow-soft transition-all"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{h.name}</p>
+                        <div key={h.name} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60">
+                          <div>
+                            <p className="text-sm font-medium">{h.name}</p>
                             <p className="text-xs text-muted-foreground">⭐ {h.rating}</p>
                           </div>
-                          <span className="text-xs text-accent font-medium shrink-0 ml-2">{h.pricePerNight}/night</span>
-                        </a>
+                          <span className="text-xs text-accent font-medium">{h.pricePerNight}/night</span>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -312,11 +295,8 @@ const Chip = ({ children, className = "" }: { children: React.ReactNode; classNa
   </span>
 );
 
-const TimeBlock = ({ icon: Icon, label, slot, dest }: { icon: any; label: string; slot: TimeSlot; dest: string }) => (
-  <a
-    href={mapsLink(slot.place, dest)} target="_blank" rel="noreferrer"
-    className="flex gap-3 p-4 rounded-2xl bg-background border border-border/60 lift-card hover:border-accent/40 transition-colors"
-  >
+const TimeBlock = ({ icon: Icon, label, slot }: { icon: any; label: string; slot: TimeSlot }) => (
+  <div className="flex gap-3 p-4 rounded-2xl bg-background border border-border/60 lift-card">
     <Icon className="w-5 h-5 text-accent mt-0.5 shrink-0" />
     <div className="min-w-0">
       <div className="flex items-center gap-2">
@@ -327,7 +307,7 @@ const TimeBlock = ({ icon: Icon, label, slot, dest }: { icon: any; label: string
       <p className="text-xs text-accent mt-1 flex items-center gap-1"><MapPin className="w-3 h-3" />{slot.place}</p>
       {slot.durationHrs && <p className="text-[11px] text-muted-foreground mt-0.5">~{slot.durationHrs}h</p>}
     </div>
-  </a>
+  </div>
 );
 
 export default ItineraryDisplay;
