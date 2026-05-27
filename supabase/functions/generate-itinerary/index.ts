@@ -9,44 +9,54 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { destination, days, budget, preferences, travelGroup, energy, travelers, primaryPersonality } = await req.json();
+    const {
+      destination, days, budget, preferences, travelGroup,
+      moods = [], travelers, primaryPersonality, behavioralProfile,
+    } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const travelerSummary = (travelers || []).map((t: any, i: number) =>
-      `${i + 1}. ${t.name || `Traveler ${i + 1}`} — personality: ${t.personality}, budget: ${t.budgetComfort}, interests: ${(t.interests || []).join(", ") || "open"}`
+      `${i + 1}. ${t.name || `Traveler ${i + 1}`} — personality: ${t.personality}, budget comfort: ${t.budgetComfort}, interests: ${(t.interests || []).join(", ") || "open"}`
     ).join("\n");
 
-    const energyRule = energy === "chill" ? "2-3 activities/day, long mid-day breaks, no early starts"
-      : energy === "packed" ? "5-6 activities/day, early starts, dense scheduling"
-      : "4 activities/day, balanced pacing, one break window";
+    const profileLine = behavioralProfile
+      ? `chronotype=${behavioralProfile.chronotype}, food=${behavioralProfile.foodProfile}, planning=${behavioralProfile.planningStyle}, social=${behavioralProfile.socialBattery}, photo=${behavioralProfile.photoInterest}/5, spending=${behavioralProfile.spendingStyle}, pace=${behavioralProfile.pace}, weather=${behavioralProfile.weatherPref}, crowds=${behavioralProfile.crowdTolerance}, spontaneity=${behavioralProfile.spontaneity}, archetype="${behavioralProfile.derivedArchetype}"`
+      : "n/a";
 
-    const prompt = `You are an emotionally-intelligent, premium AI travel planner for "Wanderly". Design a deeply personalized ${days}-day itinerary for ${destination}.
+    const moodsLine = (moods.length ? moods : preferences || []).join(", ") || "general";
+
+    const prompt = `You are Wanderly — an emotionally intelligent, premium AI travel planner. Design a deeply personalized ${days}-day itinerary for ${destination}.
 
 Trip context:
 - Budget: ₹${budget} INR total
 - Group type: ${travelGroup}
-- Trip mood / primary personality: ${primaryPersonality}
-- Energy preference: ${energy} (${energyRule})
-- Trip-wide vibes: ${(preferences || []).join(", ") || "general"}
+- Lead personality: ${primaryPersonality}
+- Trip moods (multi-select, blend ALL of these): ${moodsLine}
+- Behavioral profile: ${profileLine}
 
 Travelers (GROUP HARMONY — balance everyone's preferences so no one feels left out):
 ${travelerSummary || "Solo traveler"}
 
-CRITICAL REQUIREMENTS:
-1. Energy-aware scheduling: respect the energy rule strictly. Avoid back-to-back high-effort activities. Insert rest/comfort windows for chill/balanced.
-2. Hidden gems: each day MUST include at least one less-crowded local spot (not the top tourist trap) with a short reason it's special.
-3. Tourist trap & safety warnings: list 3–6 specific tourist traps, scams, overpriced spots, or unsafe-after-dark areas in ${destination}.
-4. Regret-prevention: highlight 2–3 commonly-missed experiences travelers regret skipping, plus 2 things that overrated and can be skipped.
-5. Realistic budget engine: include hidden costs travelers usually forget (tips, entry fees, transit surge, ATM fees, bottled water, sunscreen, etc.). Include a confidence score (0–100) reflecting how realistic the budget is for the chosen preferences, plus a one-line confidence reason.
-6. Group harmony: for each day, write 1–2 "personalizedMentions" naming specific travelers (e.g. "Sunrise trek added for Riya and Aman", "Quiet café break for Maya"). Use the actual names provided.
-7. Unique days — never repeat the same attraction or restaurant across days.
-8. Real places only — actual attractions, real restaurants, real hotels in ${destination} with coordinates.
-9. Personality fit — adapt activities to ${primaryPersonality}: explorer → off-beat, relaxer → slow + spa, foodie → food trails, thrill → adventure sports, culture → museums/heritage, social → nightlife/meetups.
+PSYCHOLOGY-DRIVEN RULES (must obey):
+1. Use the chronotype to time activities (early-bird → sunrise; night-owl → late dinners).
+2. Use crowd tolerance — "avoid" → off-peak slots, less touristy spots.
+3. Use pace + planning style — "slow + spontaneous" → fewer fixed bookings, more drift windows.
+4. Honor every trip mood. "healing + social" → quiet morning ritual + community evening dinner. "luxury" → at least one curated splurge. "nature-detox" → minimum one full nature half-day.
+5. Photography interest >=4 → schedule golden-hour photo stops.
+6. Spending style "frugal" → emphasize cost-savers; "splurge" → at least one signature experience.
+7. Hidden gems: each day MUST include at least one less-crowded local spot (not the top tourist trap) with a short reason it's special.
+8. Tourist trap & safety warnings: list 4–7 specific tourist traps, scams, overpriced spots, or unsafe-after-dark areas in ${destination}.
+9. Regret-prevention: highlight 2–3 commonly-missed experiences travelers regret skipping, plus 2 things that are overrated and can be skipped.
+10. Realistic, highly detailed budget engine — see schema below.
+11. Group harmony: for each day, 1–2 "personalizedMentions" using actual traveler names.
+12. Unique days — never repeat the same attraction or restaurant across days.
+13. Real places only — actual attractions, real restaurants, real hotels in ${destination} with coordinates (lat/lng as numbers).
+14. Personality fit — adapt activities to ${primaryPersonality} (explorer→off-beat, relaxer→slow+spa, foodie→food trails, thrill→adventure, culture→museums/heritage, social→nightlife/meetups).
 
-Detect the destination theme (one of): "mountains", "beach", "nightlife", "spiritual", or "default".
+Detect destination theme: "mountains" | "beach" | "nightlife" | "spiritual" | "default".
 
-Respond with valid JSON only, no markdown. Structure:
+Respond with valid JSON only, no markdown. Schema:
 {
   "destinationInfo": {
     "lat": number, "lng": number,
@@ -54,36 +64,57 @@ Respond with valid JSON only, no markdown. Structure:
     "imageKeyword": "best image search keyword for this destination",
     "theme": "mountains|beach|nightlife|spiritual|default",
     "bestTimeToVisit": "string",
+    "weatherSummary": "typical weather + temperature range for the trip window (1 sentence)",
     "vibe": "one-line emotional summary"
   },
   "days": [
     {
       "day": 1,
       "theme": "Short theme",
-      "energyScore": 1-10,
-      "morning": { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
+      "morning":   { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
       "afternoon": { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
-      "evening": { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
-      "restaurants": [{ "name": "...", "cuisine": "...", "priceRange": "₹...", "lat": n, "lng": n, "imageKeyword": "specific search term" }],
-      "hotels": [{ "name": "Real Hotel", "pricePerNight": "₹...", "rating": n, "lat": n, "lng": n, "imageKeyword": "specific search term" }],
+      "evening":   { "activity": "...", "place": "Real Place", "lat": n, "lng": n, "durationHrs": n, "effort": "low|medium|high" },
+      "restaurants": [{ "name": "Real Restaurant", "cuisine": "...", "priceRange": "₹...", "lat": n, "lng": n, "imageKeyword": "specific search term" }],
+      "hotels":      [{ "name": "Real Hotel",      "pricePerNight": "₹...", "rating": n, "lat": n, "lng": n, "imageKeyword": "specific search term" }],
       "attractions": ["Place 1", "Place 2", "Place 3"],
-      "hiddenGem": { "name": "...", "why": "1-2 sentence reason", "lat": n, "lng": n },
+      "hiddenGem":   { "name": "...", "why": "1-2 sentence reason", "lat": n, "lng": n },
       "personalizedMentions": ["Sunrise trek added for Riya and Aman", "..."]
     }
   ],
   "warnings": [
     { "type": "scam|trap|unsafe|overpriced", "title": "...", "detail": "1-2 sentences", "severity": "low|medium|high" }
   ],
-  "regretPrevention": {
-    "dontMiss": ["...", "..."],
-    "skippable": ["...", "..."]
-  },
+  "regretPrevention": { "dontMiss": ["...","..."], "skippable": ["...","..."] },
   "budgetBreakdown": {
     "accommodation": n, "food": n, "transport": n, "activities": n, "misc": n,
-    "hiddenCosts": [{ "label": "Entry fees", "estimate": n, "note": "short" }],
+    "hiddenCosts": [
+      { "label": "Local transport (autos/rickshaws/metro)", "estimate": n, "low": n, "high": n, "note": "expect surge pricing in evenings, ~1.5x" },
+      { "label": "Entry/temple fees & camera fees",          "estimate": n, "low": n, "high": n, "note": "..." },
+      { "label": "Food range (street → mid → premium)",      "estimate": n, "low": n, "high": n, "note": "per person per meal" },
+      { "label": "GST + service charges on hotels/food",     "estimate": n, "low": n, "high": n, "note": "12–18% typical" },
+      { "label": "Tourist pricing markup",                    "estimate": n, "low": n, "high": n, "note": "..." },
+      { "label": "Tipping & porter fees",                     "estimate": n, "low": n, "high": n, "note": "..." },
+      { "label": "Sim/data, power adapter, sunscreen",        "estimate": n, "low": n, "high": n, "note": "..." },
+      { "label": "ATM/forex/bank charges",                    "estimate": n, "low": n, "high": n, "note": "..." },
+      { "label": "Emergency buffer (medical/weather/delays)", "estimate": n, "low": n, "high": n, "note": "keep 10–15% aside" }
+    ],
     "confidenceScore": 0-100,
     "confidenceReason": "one line"
   },
+  "costSavers": [
+    { "title": "Local thali joint near ...", "saving": "Save ₹400/meal vs tourist cafes", "category": "food|transport|stay|entry|hack", "tip": "go before 1pm to avoid lines", "lat": n, "lng": n }
+  ],
+  "packingChecklist": [
+    { "category": "Documents",          "items": ["..."] },
+    { "category": "Weather-specific",   "items": ["weather-aware items based on destination + season"] },
+    { "category": "Activity-specific",  "items": ["items based on actual activities planned above"] },
+    { "category": "Health & Medicine",  "items": ["..."] },
+    { "category": "Tech & Power",       "items": ["..."] },
+    { "category": "Local essentials",   "items": ["e.g. modest clothing for temples, mosquito repellent for backwaters"] }
+  ],
+  "travelerStories": [
+    { "title": "...", "snippet": "2-3 sentence emotional micro-story tied to ${destination}", "moodTag": "one of the trip moods", "author": "First name" }
+  ],
   "travelTips": ["tip 1", "tip 2", "tip 3"]
 }`;
 
