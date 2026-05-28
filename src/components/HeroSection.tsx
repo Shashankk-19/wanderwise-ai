@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { MapPin, Sparkles } from "lucide-react";
+import { travelImage, onImgError } from "@/lib/images";
 
 interface Props { onGetStarted: () => void; }
 
 const FLOATING_DESTINATIONS = [
-  { name: "Manali", img: "manali,himalaya", className: "top-[18%] left-[6%] w-32 h-44 float-slow" },
+  { name: "Manali", img: "manali,himalaya,mountains", className: "top-[18%] left-[6%] w-32 h-44 float-slow" },
   { name: "Goa", img: "goa,beach,sunset", className: "top-[60%] left-[4%] w-28 h-36 float-slower" },
-  { name: "Kyoto", img: "kyoto,temple", className: "top-[14%] right-[8%] w-32 h-44 float-slower" },
-  { name: "Varanasi", img: "varanasi,ghats", className: "top-[58%] right-[6%] w-28 h-36 float-slow" },
+  { name: "Kyoto", img: "kyoto,temple,japan", className: "top-[14%] right-[8%] w-32 h-44 float-slower" },
+  { name: "Varanasi", img: "varanasi,ghats,india", className: "top-[58%] right-[6%] w-28 h-36 float-slow" },
 ];
 
 const HeroSection = ({ onGetStarted }: Props) => {
@@ -26,7 +27,8 @@ const HeroSection = ({ onGetStarted }: Props) => {
           className={`hidden lg:block absolute rounded-2xl overflow-hidden shadow-lift border border-border/60 ${d.className}`}
         >
           <img
-            src={`https://source.unsplash.com/300x400/?${encodeURIComponent(d.img)}`}
+            src={travelImage(d.img, 300, 400, i)}
+            onError={onImgError}
             alt={d.name}
             className="w-full h-full object-cover"
             loading="lazy"
