@@ -1,54 +1,47 @@
 import { motion } from "framer-motion";
-import { MapPin, Sun, Moon, Camera, Utensils, Hotel, Lightbulb, Navigation, Sparkles, AlertTriangle, Shield, Gem, Heart, ThumbsDown, ThumbsUp, Battery } from "lucide-react";
+import { MapPin, Sun, Moon, Camera, Utensils, Hotel, Lightbulb, Navigation, AlertTriangle, Shield, Gem, Heart, ThumbsDown, ThumbsUp, Battery, Cloud, Brain } from "lucide-react";
 import type { TripData } from "./TripForm";
 import DestinationMap from "./DestinationMap";
+import { travelImage, onImgError } from "@/lib/images";
 
-interface TimeSlot {
-  activity: string;
-  place: string;
-  lat: number;
-  lng: number;
-  durationHrs?: number;
-  effort?: "low" | "medium" | "high";
-}
-
+interface TimeSlot { activity: string; place: string; lat: number; lng: number; durationHrs?: number; effort?: "low" | "medium" | "high"; }
 interface Restaurant { name: string; cuisine: string; priceRange: string; lat: number; lng: number; imageKeyword?: string; }
 interface HotelInfo { name: string; pricePerNight: string; rating: number; lat: number; lng: number; imageKeyword?: string; }
 
 export interface ItineraryDay {
-  day: number;
-  theme: string;
-  energyScore?: number;
-  morning: TimeSlot;
-  afternoon: TimeSlot;
-  evening: TimeSlot;
-  restaurants: Restaurant[];
-  hotels: HotelInfo[];
-  attractions: string[];
+  day: number; theme: string; energyScore?: number; moodTag?: string;
+  morning: TimeSlot; afternoon: TimeSlot; evening: TimeSlot;
+  restaurants: Restaurant[]; hotels: HotelInfo[]; attractions: string[];
   hiddenGem?: { name: string; why: string; lat?: number; lng?: number };
   personalizedMentions?: string[];
 }
-
 export interface Warning { type: "scam" | "trap" | "unsafe" | "overpriced"; title: string; detail: string; severity: "low" | "medium" | "high"; }
+export interface CostSavingTip { title: string; detail: string; savesAround?: string; }
+export interface TravelerStory { name: string; feeling: string; quote: string; story: string; }
+export interface ChecklistData {
+  weatherSummary?: string;
+  packing?: string[]; documents?: string[]; activitySpecific?: string[]; safety?: string[];
+}
 
 export interface GeneratedItinerary {
   destinationInfo: {
-    lat: number; lng: number;
-    description: string;
-    imageKeyword: string;
+    lat: number; lng: number; description: string; imageKeyword: string;
     theme?: "mountains" | "beach" | "nightlife" | "spiritual" | "default";
-    bestTimeToVisit?: string;
-    vibe?: string;
+    bestTimeToVisit?: string; vibe?: string;
+    weather?: { summary: string; tempRangeC?: string; rainChance?: string };
   };
+  personalityReadout?: string;
   days: ItineraryDay[];
   warnings?: Warning[];
   regretPrevention?: { dontMiss: string[]; skippable: string[] };
   budgetBreakdown: {
     accommodation: number; food: number; transport: number; activities: number; misc: number;
     hiddenCosts?: { label: string; estimate: number; note?: string }[];
-    confidenceScore?: number;
-    confidenceReason?: string;
+    confidenceScore?: number; confidenceReason?: string;
   };
+  costSavingTips?: CostSavingTip[];
+  travelerStories?: TravelerStory[];
+  checklist?: ChecklistData;
   travelTips: string[];
 }
 
@@ -65,48 +58,62 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
     ...day.hotels.map((h) => ({ lat: h.lat, lng: h.lng, label: h.name, type: "hotel" as const })),
   ]);
 
-  const heroImg = `https://source.unsplash.com/1600x900/?${encodeURIComponent(itinerary.destinationInfo.imageKeyword || tripData.destination)},landscape,travel`;
+  const heroImg = travelImage(`${itinerary.destinationInfo.imageKeyword || tripData.destination},landscape,travel`, 1600, 900);
 
   return (
-    <section className="py-20 bg-secondary/40">
+    <section className="py-16 bg-secondary/40">
       <div className="container mx-auto px-6 max-w-5xl">
         {/* Cinematic hero */}
         <motion.div
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="relative rounded-3xl overflow-hidden mb-10 h-72 md:h-[420px] shadow-lift"
         >
-          <img src={heroImg} alt={tripData.destination} className="w-full h-full object-cover" />
+          <img src={heroImg} alt={tripData.destination} onError={onImgError} className="w-full h-full object-cover ken-burns" />
           <div className="absolute inset-0 bg-gradient-hero" />
           <div className="absolute bottom-8 left-8 right-8">
             {itinerary.destinationInfo.vibe && (
-              <span className="inline-block mb-3 px-3 py-1 rounded-full bg-accent/30 text-primary-foreground text-xs font-medium tracking-wide uppercase backdrop-blur-sm">
+              <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                className="inline-block mb-3 px-3 py-1 rounded-full bg-accent/30 text-primary-foreground text-xs font-medium tracking-wide uppercase backdrop-blur-sm">
                 {itinerary.destinationInfo.vibe}
-              </span>
+              </motion.span>
             )}
-            <h2 className="font-heading text-4xl md:text-6xl font-bold text-primary-foreground mb-3 leading-tight">
+            <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+              className="font-heading text-4xl md:text-6xl font-bold text-primary-foreground mb-3 leading-tight">
               {tripData.destination}
-            </h2>
-            <p className="font-body text-primary-foreground/85 text-sm md:text-base max-w-2xl">
+            </motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+              className="font-body text-primary-foreground/85 text-sm md:text-base max-w-2xl">
               {itinerary.destinationInfo.description}
-            </p>
+            </motion.p>
             <div className="flex flex-wrap gap-2 mt-4">
               <Chip>📅 {tripData.days} days</Chip>
               <Chip>💰 ₹{tripData.budget.toLocaleString("en-IN")}</Chip>
               <Chip className="capitalize">👥 {tripData.travelGroup}</Chip>
-              <Chip className="capitalize">⚡ {tripData.energy}</Chip>
+              {itinerary.destinationInfo.weather?.summary && <Chip>☁️ {itinerary.destinationInfo.weather.summary}</Chip>}
               {itinerary.destinationInfo.bestTimeToVisit && <Chip>🗓 {itinerary.destinationInfo.bestTimeToVisit}</Chip>}
             </div>
           </div>
         </motion.div>
 
-        {/* Warnings strip */}
+        {/* Personality readout */}
+        {itinerary.personalityReadout && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="mb-10 bg-card rounded-3xl p-6 border border-border shadow-soft flex gap-4 items-start">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-ocean flex items-center justify-center shrink-0">
+              <Brain className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <p className="font-heading font-semibold text-sm mb-1">Wanderly read your vibe</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{itinerary.personalityReadout}</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Warnings */}
         {itinerary.warnings && itinerary.warnings.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="mb-10 bg-card rounded-2xl p-6 border border-border shadow-soft"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="mb-10 bg-card rounded-2xl p-6 border border-border shadow-soft">
             <h3 className="font-heading text-lg font-semibold flex items-center gap-2 mb-4">
               <Shield className="w-5 h-5 text-sunset" /> Safety & Tourist Traps
             </h3>
@@ -130,7 +137,7 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
         )}
 
         {/* Map */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
           <h3 className="font-heading text-2xl font-bold mb-4 flex items-center gap-2">
             <Navigation className="w-5 h-5 text-accent" /> Explore on Map
           </h3>
@@ -159,11 +166,18 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
                       <p className="font-body text-sm opacity-80">{day.theme}</p>
                     </div>
                   </div>
-                  {day.energyScore != null && (
-                    <div className="flex items-center gap-1.5 bg-primary-foreground/15 px-3 py-1.5 rounded-full text-xs backdrop-blur">
-                      <Battery className="w-3.5 h-3.5" /> Energy {day.energyScore}/10
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    {day.moodTag && (
+                      <div className="bg-primary-foreground/15 px-3 py-1.5 rounded-full text-xs backdrop-blur capitalize">
+                        ✨ {day.moodTag}
+                      </div>
+                    )}
+                    {day.energyScore != null && (
+                      <div className="flex items-center gap-1.5 bg-primary-foreground/15 px-3 py-1.5 rounded-full text-xs backdrop-blur">
+                        <Battery className="w-3.5 h-3.5" /> {day.energyScore}/10
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -213,13 +227,16 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
                         <Utensils className="w-3 h-3" /> Where to Eat
                       </p>
                       {day.restaurants.map((r) => (
-                        <div key={r.name} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60">
+                        <a key={r.name}
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + " " + tripData.destination)}`}
+                          target="_blank" rel="noreferrer"
+                          className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60 hover:border-accent/60 transition-colors">
                           <div>
                             <p className="text-sm font-medium">{r.name}</p>
                             <p className="text-xs text-muted-foreground">{r.cuisine}</p>
                           </div>
                           <span className="text-xs text-accent font-medium">{r.priceRange}</span>
-                        </div>
+                        </a>
                       ))}
                     </div>
                   )}
@@ -229,13 +246,16 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
                         <Hotel className="w-3 h-3" /> Where to Stay
                       </p>
                       {day.hotels.map((h) => (
-                        <div key={h.name} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60">
+                        <a key={h.name}
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name + " " + tripData.destination)}`}
+                          target="_blank" rel="noreferrer"
+                          className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60 hover:border-accent/60 transition-colors">
                           <div>
                             <p className="text-sm font-medium">{h.name}</p>
                             <p className="text-xs text-muted-foreground">⭐ {h.rating}</p>
                           </div>
                           <span className="text-xs text-accent font-medium">{h.pricePerNight}/night</span>
-                        </div>
+                        </a>
                       ))}
                     </div>
                   )}
