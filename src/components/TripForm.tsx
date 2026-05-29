@@ -111,18 +111,43 @@ const blankTraveler = (i: number): TravelerProfile => ({
   interests: [],
 });
 
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function seasonForMonth(monthIndex: number): string {
+  // Generic seasonal hint (N. Hemisphere / India-leaning)
+  if ([11, 0, 1].includes(monthIndex)) return "Winter";
+  if ([2, 3, 4].includes(monthIndex)) return "Spring";
+  if ([5, 6, 7].includes(monthIndex)) return "Summer / Monsoon";
+  return "Autumn";
+}
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
 const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
   const [destination, setDestination] = useState("");
+  const [destFocused, setDestFocused] = useState(false);
   const [days, setDays] = useState(5);
   const [budget, setBudget] = useState(50000);
+  const [startDate, setStartDate] = useState<string>(todayISO());
   const [moods, setMoods] = useState<string[]>(["peaceful"]);
   const [travelGroup, setTravelGroup] = useState<TravelGroup>("solo");
   const [primaryPersonality, setPrimaryPersonality] = useState<Personality>("explorer");
   const [travelers, setTravelers] = useState<TravelerProfile[]>([blankTraveler(0)]);
   const [behavioral, setBehavioral] = useState<BehavioralProfile>(DEFAULT_BEHAVIOR);
   const [showPsych, setShowPsych] = useState(false);
+  const destInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const suggestions = useMemo(() => searchDestinations(destination), [destination]);
+  const showSuggestions = destFocused && suggestions.length > 0 && destination.trim().length > 0;
+
+  const monthIdx = useMemo(() => {
+    const d = startDate ? new Date(startDate) : new Date();
+    return isNaN(d.getTime()) ? new Date().getMonth() : d.getMonth();
+  }, [startDate]);
+  const monthName = MONTH_NAMES[monthIdx];
+  const season = seasonForMonth(monthIdx);
 
   const isGroup = travelGroup !== "solo";
 
@@ -151,6 +176,12 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
 
   const toggleMood = (id: string) => setMoods((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
 
+  const pickSuggestion = (s: string) => {
+    setDestination(s);
+    setDestFocused(false);
+    destInputRef.current?.blur();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!destination.trim() || moods.length === 0) {
@@ -159,8 +190,9 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
     }
     const data: TripData = {
       destination, days, budget,
+      startDate, startMonth: monthName, season,
       moods,
-      preferences: moods, // legacy compatibility
+      preferences: moods,
       travelGroup,
       travelers: isGroup ? travelers : [{ ...travelers[0], name: travelers[0].name || "You", personality: primaryPersonality }],
       primaryPersonality,
