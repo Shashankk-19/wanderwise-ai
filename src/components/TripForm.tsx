@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Calendar, IndianRupee, Sparkles, Users, Plus, X, Heart, Brain } from "lucide-react";
+import { MapPin, Calendar, IndianRupee, Sparkles, Users, Plus, X, Heart, Brain, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { searchDestinations } from "@/lib/destinations";
 
 export type TravelGroup = "solo" | "couple" | "family" | "friends";
 export type Personality = "explorer" | "relaxer" | "foodie" | "thrill" | "culture" | "social";
