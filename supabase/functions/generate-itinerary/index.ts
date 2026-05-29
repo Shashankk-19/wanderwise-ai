@@ -12,6 +12,7 @@ serve(async (req) => {
     const {
       destination, days, budget, moods, preferences, travelGroup,
       travelers, primaryPersonality, behavioral,
+      startDate, startMonth, season,
     } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -36,6 +37,10 @@ serve(async (req) => {
 - Spontaneity: ${b.spontaneity || "balanced"}
 `.trim();
 
+    const dateLine = startDate
+      ? `- Trip starts: ${startDate} (${startMonth || ""}${season ? `, ${season}` : ""})`
+      : "";
+
     const prompt = `You are Wanderly — a deeply emotionally-intelligent, premium travel intelligence engine.
 Plan a richly personalized ${days}-day trip to ${destination}.
 
@@ -44,11 +49,18 @@ CONTEXT
 - Group: ${travelGroup}
 - Primary personality: ${primaryPersonality}
 - Trip moods (multi): ${moodList.join(", ")}
+${dateLine}
 - Travelers:
 ${travelerSummary || "Solo traveler"}
 
 BEHAVIORAL / PSYCHOLOGY PROFILE (use this to shape EVERY choice):
 ${behavioralSummary}
+
+SEASON / DATE AWARENESS:
+- Tailor activities, weather summary, packing list and warnings to the actual season at ${destination} during ${startMonth || "the trip month"}.
+- Mention any festivals, monsoon closures, peak/off-peak pricing, snow access etc. relevant to that month.
+- If outdoor activities are unsafe or attractions are closed in that season, suggest indoor/seasonal alternatives.
+
 
 TRANSLATE THE PROFILE INTO CONCRETE DECISIONS:
 - Night-owl → start days late, evening-heavy. Early-bird → sunrise activities.
