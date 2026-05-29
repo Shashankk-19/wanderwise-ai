@@ -429,7 +429,8 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
           </AnimatePresence>
 
           <Button type="submit" size="xl"
-            className="w-full bg-gradient-sunset text-primary-foreground hover:opacity-95 shadow-glow btn-glow"
+            data-sparkle="butterfly"
+            className="w-full bg-gradient-ocean text-primary-foreground hover:opacity-95 shadow-glow btn-glow"
             disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center gap-2">
