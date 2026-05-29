@@ -36,8 +36,11 @@ export interface TripData {
   destination: string;
   days: number;
   budget: number;
-  moods: string[]; // multi-select trip moods
-  preferences: string[]; // legacy
+  startDate: string;       // ISO date (YYYY-MM-DD)
+  startMonth: string;      // e.g. "March"
+  season?: string;         // derived ("Winter", "Monsoon" ...)
+  moods: string[];
+  preferences: string[];
   travelGroup: TravelGroup;
   travelers: TravelerProfile[];
   primaryPersonality: Personality;
