@@ -55,18 +55,13 @@ const HeroSection = ({ onGetStarted }: Props) => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          className="flex justify-center items-center">
           <button
             onClick={onGetStarted}
-            className="inline-flex items-center gap-2 h-14 px-10 text-base rounded-2xl font-medium bg-primary text-primary-foreground shadow-lift hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+            data-sparkle="butterfly"
+            className="inline-flex items-center gap-2 h-14 px-10 text-base rounded-2xl font-medium bg-primary text-primary-foreground shadow-lift hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 btn-glow"
           >
             <MapPin className="w-5 h-5" /> Plan my trip
-          </button>
-          <button
-            onClick={onGetStarted}
-            className="inline-flex items-center gap-2 h-14 px-8 text-base rounded-2xl font-medium text-foreground hover:bg-muted transition-colors"
-          >
-            See how it works →
           </button>
         </motion.div>
 
