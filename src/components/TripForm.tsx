@@ -225,12 +225,45 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
           className="bg-card rounded-3xl p-8 shadow-soft border border-border space-y-7"
         >
-          {/* Destination */}
+          {/* Destination with autocomplete */}
           <div className="space-y-2">
             <Label className="font-body text-sm font-medium flex items-center gap-2">
               <MapPin className="w-4 h-4 text-accent" /> Destination
             </Label>
-            <Input placeholder="Goa, Manali, Bali, Kyoto..." value={destination} onChange={(e) => setDestination(e.target.value)} className="h-12 text-base bg-background" />
+            <div className="relative">
+              <Input
+                ref={destInputRef}
+                placeholder="Start typing — Goa, Bali, Kyoto..."
+                value={destination}
+                onChange={(e) => { setDestination(e.target.value); setDestFocused(true); }}
+                onFocus={() => setDestFocused(true)}
+                onBlur={() => setTimeout(() => setDestFocused(false), 150)}
+                className="h-12 text-base bg-background"
+                autoComplete="off"
+              />
+              <AnimatePresence>
+                {showSuggestions && (
+                  <motion.ul
+                    initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute z-30 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lift overflow-hidden"
+                  >
+                    {suggestions.map((s) => (
+                      <li key={s}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); pickSuggestion(s); }}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent/10 flex items-center gap-2 transition-colors"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-accent shrink-0" />
+                          <span>{s}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </motion.ul>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Travel group */}
@@ -241,6 +274,7 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {GROUP_OPTIONS.map((opt) => (
                 <button key={opt.id} type="button" onClick={() => handleGroupChange(opt.id)}
+                  data-sparkle
                   className={`p-4 rounded-2xl text-center transition-all border-2 ${travelGroup === opt.id ? "bg-accent/10 border-accent shadow-soft" : "bg-background border-border hover:border-accent/40"}`}>
                   <p className="font-heading font-semibold text-sm">{opt.label}</p>
                   <p className="font-body text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
@@ -249,8 +283,13 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
             </div>
           </div>
 
-          {/* Days + Budget */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Start date + Days + Budget */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2"><CalendarDays className="w-4 h-4 text-accent" />Start date</Label>
+              <Input type="date" min={todayISO()} value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-12" />
+              <p className="text-[11px] text-muted-foreground">{monthName} · {season}</p>
+            </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2"><Calendar className="w-4 h-4 text-accent" />Days</Label>
               <Input type="number" min={1} max={30} value={days} onChange={(e) => setDays(Number(e.target.value))} className="h-12" />
