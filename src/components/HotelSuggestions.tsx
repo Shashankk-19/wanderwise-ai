@@ -3,7 +3,7 @@ import { Star, Wifi, Coffee, Car, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TripData } from "./TripForm";
 import type { GeneratedItinerary } from "./ItineraryDisplay";
-import { travelImage, onImgError } from "@/lib/images";
+import SmartImage from "./SmartImage";
 
 interface Props { tripData: TripData; itinerary?: GeneratedItinerary; }
 
@@ -34,7 +34,6 @@ const HotelSuggestions = ({ tripData, itinerary }: Props) => {
           {hotels.map((hotel: any, idx) => {
             const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(hotel.name + " " + tripData.destination)}`;
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel.name + " " + tripData.destination)}`;
-            const img = travelImage(hotel.imageKeyword || `${hotel.name},${tripData.destination},hotel`, 600, 400, idx);
             return (
               <motion.div
                 key={hotel.name + idx}
@@ -42,10 +41,15 @@ const HotelSuggestions = ({ tripData, itinerary }: Props) => {
                 transition={{ delay: idx * 0.1, duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
                 className="lift-card bg-card rounded-3xl overflow-hidden shadow-soft border border-border group"
               >
-                <div className="h-44 overflow-hidden relative">
-                  <img src={img} alt={hotel.name} onError={onImgError}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
-                </div>
+                <SmartImage
+                  query={`${hotel.name} ${tripData.destination} hotel`}
+                  type="hotel"
+                  alt={hotel.name}
+                  rounded=""
+                  className="h-44"
+                  imgClassName="group-hover:scale-105 transition-transform duration-700"
+                />
+
                 <div className="p-5 space-y-3">
                   <div className="flex items-start justify-between">
                     <h3 className="font-heading text-lg font-semibold leading-tight">{hotel.name}</h3>

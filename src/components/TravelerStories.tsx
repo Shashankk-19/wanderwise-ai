@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
 import type { GeneratedItinerary } from "./ItineraryDisplay";
-import { travelImage, onImgError } from "@/lib/images";
 
 interface Props { itinerary?: GeneratedItinerary; destination: string; }
 
@@ -25,26 +24,19 @@ const TravelerStories = ({ itinerary, destination }: Props) => {
             <motion.figure key={i}
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.6 }}
-              className="lift-card bg-card rounded-3xl overflow-hidden shadow-soft border border-border">
-              <div className="h-48 overflow-hidden relative">
-                <img src={travelImage(`${destination},${s.feeling},travel,moment`, 600, 400, `story-${i}`)} alt={s.name}
-                  onError={onImgError} className="w-full h-full object-cover ken-burns" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
-              </div>
-              <figcaption className="p-6">
-                <Quote className="w-6 h-6 text-sunset mb-3" />
-                <blockquote className="font-heading text-base italic leading-snug mb-3">"{s.quote}"</blockquote>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.story}</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-gradient-ocean flex items-center justify-center text-primary-foreground font-heading font-bold text-sm">
-                    {s.name.slice(0, 1)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{s.name}</p>
-                    <p className="text-xs text-accent capitalize">felt {s.feeling}</p>
-                  </div>
+              className="lift-card bg-card rounded-3xl shadow-soft border border-border p-6 flex flex-col">
+              <Quote className="w-7 h-7 text-sunset mb-3" />
+              <blockquote className="font-heading text-lg italic leading-snug mb-4">"{s.quote}"</blockquote>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5 flex-1">{s.story}</p>
+              <div className="flex items-center gap-3 pt-4 border-t border-border">
+                <div className="w-10 h-10 rounded-full bg-gradient-ocean flex items-center justify-center text-primary-foreground font-heading font-bold text-sm">
+                  {s.name.slice(0, 1)}
                 </div>
-              </figcaption>
+                <div>
+                  <p className="text-sm font-medium">{s.name}</p>
+                  <p className="text-xs text-accent capitalize">felt {s.feeling}</p>
+                </div>
+              </div>
             </motion.figure>
           ))}
         </div>

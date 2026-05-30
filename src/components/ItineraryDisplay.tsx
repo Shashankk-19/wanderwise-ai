@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { MapPin, Sun, Moon, Camera, Utensils, Hotel, Lightbulb, Navigation, AlertTriangle, Shield, Gem, Heart, ThumbsDown, ThumbsUp, Battery, Cloud, Brain } from "lucide-react";
 import type { TripData } from "./TripForm";
 import DestinationMap from "./DestinationMap";
-import { travelImage, onImgError } from "@/lib/images";
+import SmartImage from "./SmartImage";
 
 interface TimeSlot { activity: string; place: string; lat: number; lng: number; durationHrs?: number; effort?: "low" | "medium" | "high"; }
 interface Restaurant { name: string; cuisine: string; priceRange: string; lat: number; lng: number; imageKeyword?: string; }
@@ -58,7 +58,7 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
     ...day.hotels.map((h) => ({ lat: h.lat, lng: h.lng, label: h.name, type: "hotel" as const })),
   ]);
 
-  const heroImg = travelImage(`${itinerary.destinationInfo.imageKeyword || tripData.destination},landscape,travel`, 1600, 900);
+  const heroQuery = `${itinerary.destinationInfo.imageKeyword || tripData.destination} ${tripData.destination} landscape travel`;
 
   return (
     <section className="py-16 bg-secondary/40">
@@ -69,7 +69,7 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="relative rounded-3xl overflow-hidden mb-10 h-72 md:h-[420px] shadow-lift"
         >
-          <img src={heroImg} alt={tripData.destination} onError={onImgError} className="w-full h-full object-cover ken-burns" />
+          <SmartImage query={heroQuery} alt={tripData.destination} rounded="" className="absolute inset-0" imgClassName="ken-burns" />
           <div className="absolute inset-0 bg-gradient-hero" />
           <div className="absolute bottom-8 left-8 right-8">
             {itinerary.destinationInfo.vibe && (
