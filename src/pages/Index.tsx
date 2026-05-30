@@ -16,6 +16,7 @@ import Chatbot from "@/components/Chatbot";
 import IntroAnimation from "@/components/IntroAnimation";
 import SparkleOverlay from "@/components/SparkleOverlay";
 import DestinationGallery from "@/components/DestinationGallery";
+import MedicalEmergency from "@/components/MedicalEmergency";
 import { useToast } from "@/hooks/use-toast";
 import { applyTheme, detectTheme } from "@/lib/destinationTheme";
 
