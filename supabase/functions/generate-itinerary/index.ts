@@ -207,7 +207,7 @@ Respond as VALID JSON ONLY (no markdown):
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are a premium travel intelligence engine. Return strict JSON only, no markdown. Keep all string fields concise to ensure complete JSON output." },
           { role: "user", content: prompt },
