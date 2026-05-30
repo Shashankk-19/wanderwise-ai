@@ -136,6 +136,11 @@ const Index = () => {
                   <ItineraryRefiner tripData={tripData} itinerary={itinerary} onUpdate={setItinerary} />
                   <BudgetBreakdown tripData={tripData} itinerary={itinerary} />
                   <HotelSuggestions tripData={tripData} itinerary={itinerary} />
+                  <MedicalEmergency
+                    lat={itinerary.destinationInfo.lat}
+                    lng={itinerary.destinationInfo.lng}
+                    destination={tripData.destination}
+                  />
                   {itinerary.costSavingTips?.length ? (
                     <CostSavingTips destination={tripData.destination} itinerary={itinerary} />
                   ) : null}
