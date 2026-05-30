@@ -64,6 +64,8 @@ CONTEXT
 ${dateLine}
 - Travelers:
 ${travelerSummary || "Solo traveler"}
+${safetyLine}
+
 
 BEHAVIORAL / PSYCHOLOGY PROFILE (use this to shape EVERY choice):
 ${behavioralSummary}
