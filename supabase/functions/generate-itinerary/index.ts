@@ -162,12 +162,13 @@ Respond as VALID JSON ONLY (no markdown):
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are a premium travel intelligence engine. Return strict JSON only, no markdown." },
+          { role: "system", content: "You are a premium travel intelligence engine. Return strict JSON only, no markdown. Keep all string fields concise to ensure complete JSON output." },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
+        max_tokens: 16000,
       }),
     });
 
@@ -180,13 +181,10 @@ Respond as VALID JSON ONLY (no markdown):
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    let parsed;
-    try {
-      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      parsed = JSON.parse(cleaned);
-    } catch {
-      console.error("Failed to parse:", content);
+    const content: string = data.choices?.[0]?.message?.content ?? "";
+    const parsed = parseItinerary(content);
+    if (!parsed) {
+      console.error("Failed to parse itinerary. Length:", content.length, "Tail:", content.slice(-400));
       return new Response(JSON.stringify({ error: "Failed to parse itinerary" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
