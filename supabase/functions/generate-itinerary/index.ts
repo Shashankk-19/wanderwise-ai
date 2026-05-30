@@ -154,6 +154,7 @@ Respond as VALID JSON ONLY (no markdown):
     "activitySpecific": ["e.g., trekking poles for Day 3 hike"],
     "safety":    ["..."]
   },
+  "safetyTips": ["women-safety-specific tips if Women Safe Mode enabled, else general"],
   "travelTips": ["...","...","..."]
 }`;
 
