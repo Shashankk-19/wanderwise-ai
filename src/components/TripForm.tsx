@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Calendar, IndianRupee, Sparkles, Users, Plus, X, Heart, Brain, CalendarDays } from "lucide-react";
+import { MapPin, Calendar, IndianRupee, Sparkles, Users, Plus, X, Heart, Brain, CalendarDays, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +32,8 @@ export interface TravelerProfile {
   interests: string[];
 }
 
+export type Gender = "female" | "male" | "non-binary" | "prefer-not-to-say";
+
 export interface TripData {
   destination: string;
   days: number;
@@ -45,6 +47,8 @@ export interface TripData {
   travelers: TravelerProfile[];
   primaryPersonality: Personality;
   behavioral: BehavioralProfile;
+  gender: Gender;
+  womenSafeMode: boolean;
 }
 
 interface TripFormProps {
@@ -135,6 +139,8 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
   const [travelers, setTravelers] = useState<TravelerProfile[]>([blankTraveler(0)]);
   const [behavioral, setBehavioral] = useState<BehavioralProfile>(DEFAULT_BEHAVIOR);
   const [showPsych, setShowPsych] = useState(false);
+  const [gender, setGender] = useState<Gender>("prefer-not-to-say");
+  const [womenSafeMode, setWomenSafeMode] = useState(false);
   const destInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -197,6 +203,8 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
       travelers: isGroup ? travelers : [{ ...travelers[0], name: travelers[0].name || "You", personality: primaryPersonality }],
       primaryPersonality,
       behavioral,
+      gender,
+      womenSafeMode,
     };
     onSubmit(data);
 
