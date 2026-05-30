@@ -5,6 +5,51 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function parseItinerary(raw: string): any | null {
+  if (!raw) return null;
+  let s = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const first = s.indexOf("{");
+  if (first > 0) s = s.slice(first);
+  try { return JSON.parse(s); } catch {}
+  // Repair: truncate to last complete structure, balance braces/brackets
+  // Strip trailing partial token
+  let t = s.replace(/,\s*$/, "");
+  // Remove trailing incomplete string
+  const lastQuote = t.lastIndexOf('"');
+  // Try progressive truncation at last comma then balance
+  for (let i = 0; i < 5; i++) {
+    let candidate = t;
+    // strip dangling open string
+    const quotes = (candidate.match(/"/g) || []).length;
+    if (quotes % 2 !== 0) {
+      const lq = candidate.lastIndexOf('"');
+      candidate = candidate.slice(0, lq);
+    }
+    // drop trailing junk after last } or ]
+    const lastClose = Math.max(candidate.lastIndexOf("}"), candidate.lastIndexOf("]"), candidate.lastIndexOf(","));
+    if (lastClose > 0) candidate = candidate.slice(0, lastClose).replace(/,\s*$/, "");
+    // balance
+    let braces = 0, brackets = 0, inStr = false, esc = false;
+    for (const c of candidate) {
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === "{") braces++;
+      else if (c === "}") braces--;
+      else if (c === "[") brackets++;
+      else if (c === "]") brackets--;
+    }
+    let repaired = candidate;
+    while (brackets-- > 0) repaired += "]";
+    while (braces-- > 0) repaired += "}";
+    try { return JSON.parse(repaired); } catch {}
+    t = candidate.slice(0, candidate.lastIndexOf(","));
+    if (t.length < 50) break;
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -162,12 +207,13 @@ Respond as VALID JSON ONLY (no markdown):
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are a premium travel intelligence engine. Return strict JSON only, no markdown." },
+          { role: "system", content: "You are a premium travel intelligence engine. Return strict JSON only, no markdown. Keep all string fields concise to ensure complete JSON output." },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
+        max_tokens: 16000,
       }),
     });
 
@@ -180,13 +226,10 @@ Respond as VALID JSON ONLY (no markdown):
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    let parsed;
-    try {
-      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      parsed = JSON.parse(cleaned);
-    } catch {
-      console.error("Failed to parse:", content);
+    const content: string = data.choices?.[0]?.message?.content ?? "";
+    const parsed = parseItinerary(content);
+    if (!parsed) {
+      console.error("Failed to parse itinerary. Length:", content.length, "Tail:", content.slice(-400));
       return new Response(JSON.stringify({ error: "Failed to parse itinerary" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
