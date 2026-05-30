@@ -1,5 +1,16 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { ConfigError } from "./components/ConfigError.tsx";
+import { checkEnv } from "./lib/env.ts";
 import "./index.css";
 
-createRoot(document.getElementById("root")!).render(<App />);
+const root = createRoot(document.getElementById("root")!);
+const env = checkEnv();
+
+if (!env.ok) {
+  // eslint-disable-next-line no-console
+  console.error("[Wanderly] Missing required env vars:", env.missing);
+  root.render(<ConfigError missing={env.missing} />);
+} else {
+  root.render(<App />);
+}
