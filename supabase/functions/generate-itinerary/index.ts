@@ -5,6 +5,51 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function parseItinerary(raw: string): any | null {
+  if (!raw) return null;
+  let s = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const first = s.indexOf("{");
+  if (first > 0) s = s.slice(first);
+  try { return JSON.parse(s); } catch {}
+  // Repair: truncate to last complete structure, balance braces/brackets
+  // Strip trailing partial token
+  let t = s.replace(/,\s*$/, "");
+  // Remove trailing incomplete string
+  const lastQuote = t.lastIndexOf('"');
+  // Try progressive truncation at last comma then balance
+  for (let i = 0; i < 5; i++) {
+    let candidate = t;
+    // strip dangling open string
+    const quotes = (candidate.match(/"/g) || []).length;
+    if (quotes % 2 !== 0) {
+      const lq = candidate.lastIndexOf('"');
+      candidate = candidate.slice(0, lq);
+    }
+    // drop trailing junk after last } or ]
+    const lastClose = Math.max(candidate.lastIndexOf("}"), candidate.lastIndexOf("]"), candidate.lastIndexOf(","));
+    if (lastClose > 0) candidate = candidate.slice(0, lastClose).replace(/,\s*$/, "");
+    // balance
+    let braces = 0, brackets = 0, inStr = false, esc = false;
+    for (const c of candidate) {
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === "{") braces++;
+      else if (c === "}") braces--;
+      else if (c === "[") brackets++;
+      else if (c === "]") brackets--;
+    }
+    let repaired = candidate;
+    while (brackets-- > 0) repaired += "]";
+    while (braces-- > 0) repaired += "}";
+    try { return JSON.parse(repaired); } catch {}
+    t = candidate.slice(0, candidate.lastIndexOf(","));
+    if (t.length < 50) break;
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
