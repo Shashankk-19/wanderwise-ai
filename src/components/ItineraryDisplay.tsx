@@ -51,12 +51,12 @@ interface ItineraryDisplayProps { tripData: TripData; itinerary: GeneratedItiner
 const effortColor = (e?: string) => e === "high" ? "text-sunset" : e === "medium" ? "text-accent" : "text-muted-foreground";
 
 const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
-  const allMarkers = itinerary.days.flatMap((day) => [
-    { lat: day.morning.lat, lng: day.morning.lng, label: day.morning.place, type: "attraction" as const },
-    { lat: day.afternoon.lat, lng: day.afternoon.lng, label: day.afternoon.place, type: "attraction" as const },
-    { lat: day.evening.lat, lng: day.evening.lng, label: day.evening.place, type: "attraction" as const },
-    ...day.restaurants.map((r) => ({ lat: r.lat, lng: r.lng, label: r.name, type: "restaurant" as const })),
-    ...day.hotels.map((h) => ({ lat: h.lat, lng: h.lng, label: h.name, type: "hotel" as const })),
+  const allMarkers = (itinerary.days ?? []).flatMap((day) => [
+    ...(day?.morning ? [{ lat: day.morning.lat, lng: day.morning.lng, label: day.morning.place, type: "attraction" as const }] : []),
+    ...(day?.afternoon ? [{ lat: day.afternoon.lat, lng: day.afternoon.lng, label: day.afternoon.place, type: "attraction" as const }] : []),
+    ...(day?.evening ? [{ lat: day.evening.lat, lng: day.evening.lng, label: day.evening.place, type: "attraction" as const }] : []),
+    ...(day?.restaurants ?? []).map((r) => ({ lat: r.lat, lng: r.lng, label: r.name, type: "restaurant" as const })),
+    ...(day?.hotels ?? []).map((h) => ({ lat: h.lat, lng: h.lng, label: h.name, type: "hotel" as const })),
   ]);
 
   const heroQuery = `${itinerary.destinationInfo.imageKeyword || tripData.destination} ${tripData.destination} landscape travel`;
