@@ -289,6 +289,23 @@ const ItineraryDisplay = ({ tripData, itinerary }: ItineraryDisplayProps) => {
           </motion.div>
         )}
 
+        {/* Safety tips (Women Safe Mode aware) */}
+        {itinerary.safetyTips && itinerary.safetyTips.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="mt-8 bg-card rounded-2xl p-6 shadow-soft border-2 border-sunset/30">
+            <h3 className="font-heading text-xl font-semibold mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-sunset" /> {tripData.womenSafeMode ? "Women Safe Mode — Safety Tips" : "Safety Tips"}
+            </h3>
+            <ul className="grid sm:grid-cols-2 gap-2">
+              {itinerary.safetyTips.map((tip, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <span className="text-sunset font-bold shrink-0">→</span>{tip}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+
         {/* Travel tips */}
         {itinerary.travelTips?.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
