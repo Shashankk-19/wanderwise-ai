@@ -33,7 +33,9 @@ export const getSupabaseClient = (): TypedSupabaseClient => {
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = new Proxy({} as TypedSupabaseClient, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getSupabaseClient(), prop, receiver);
+  get(_target, prop) {
+    const client = getSupabaseClient();
+    const value = Reflect.get(client, prop, client);
+    return typeof value === "function" ? value.bind(client) : value;
   },
 });
