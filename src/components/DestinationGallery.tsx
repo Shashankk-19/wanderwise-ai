@@ -1,12 +1,12 @@
-import { travelImage, onImgError } from "@/lib/images";
 import { motion } from "framer-motion";
+import SmartImage from "./SmartImage";
 
 interface Props { destination: string; baseKeyword?: string; }
 
 const VARIANTS = [
-  "landscape,travel", "street,architecture", "food,cuisine",
-  "sunset,scenic", "people,culture", "hidden,gem",
-  "market,colorful", "nature,trail", "skyline,night",
+  "landscape", "street architecture", "food cuisine",
+  "sunset scenic", "people culture", "hidden gem",
+  "market colorful", "nature trail", "skyline night",
 ];
 
 const DestinationGallery = ({ destination, baseKeyword }: Props) => {
@@ -29,18 +29,18 @@ const DestinationGallery = ({ destination, baseKeyword }: Props) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.5 }}
-              className={`relative shrink-0 snap-start rounded-2xl overflow-hidden shadow-soft border border-border bg-muted ${
+              className={`relative shrink-0 snap-start shadow-soft border border-border bg-muted rounded-2xl overflow-hidden ${
                 i % 3 === 0 ? "w-[260px] h-[340px]" : i % 3 === 1 ? "w-[220px] h-[290px]" : "w-[280px] h-[220px]"
               }`}
             >
-              <img
-                src={travelImage(`${base},${v}`, 500, 600, i)}
-                onError={onImgError}
+              <SmartImage
+                query={`${destination} ${v}`}
                 alt={`${destination} ${v}`}
-                loading="lazy"
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                rounded=""
+                className="w-full h-full"
+                imgClassName="hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent pointer-events-none" />
             </motion.div>
           ))}
         </div>

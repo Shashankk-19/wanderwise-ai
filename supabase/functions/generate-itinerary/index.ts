@@ -13,6 +13,7 @@ serve(async (req) => {
       destination, days, budget, moods, preferences, travelGroup,
       travelers, primaryPersonality, behavioral,
       startDate, startMonth, season,
+      gender, womenSafeMode,
     } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -41,6 +42,17 @@ serve(async (req) => {
       ? `- Trip starts: ${startDate} (${startMonth || ""}${season ? `, ${season}` : ""})`
       : "";
 
+    const safetyLine = womenSafeMode
+      ? `\n\nWOMEN SAFE MODE — ENABLED (traveler gender: ${gender || "unspecified"}):
+- Prioritize stays in safe, well-reviewed, well-lit neighborhoods with 24/7 reception.
+- Bias activities toward daytime; flag any evening plans with a clear safety note + suggested transport.
+- Recommend verified taxi apps / women-only transport where available.
+- Prefer busier, well-trafficked attractions over isolated spots after dark.
+- Add a dedicated "safetyTips" array (6-10 items) tailored for solo female travelers in ${destination}: scams targeting women, dress code norms, emergency numbers, safe areas to stay, areas to avoid after dark, women-only carriages/coaches if applicable.
+- In warnings, add at least 2 women-specific safety warnings with severity.`
+      : `\n(Traveler gender: ${gender || "unspecified"}. Standard safety guidance.)`;
+
+
     const prompt = `You are Wanderly — a deeply emotionally-intelligent, premium travel intelligence engine.
 Plan a richly personalized ${days}-day trip to ${destination}.
 
@@ -52,6 +64,8 @@ CONTEXT
 ${dateLine}
 - Travelers:
 ${travelerSummary || "Solo traveler"}
+${safetyLine}
+
 
 BEHAVIORAL / PSYCHOLOGY PROFILE (use this to shape EVERY choice):
 ${behavioralSummary}
@@ -140,6 +154,7 @@ Respond as VALID JSON ONLY (no markdown):
     "activitySpecific": ["e.g., trekking poles for Day 3 hike"],
     "safety":    ["..."]
   },
+  "safetyTips": ["women-safety-specific tips if Women Safe Mode enabled, else general"],
   "travelTips": ["...","...","..."]
 }`;
 

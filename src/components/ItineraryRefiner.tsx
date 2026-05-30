@@ -22,6 +22,14 @@ const SUGGESTIONS = [
   "Cut a tourist-heavy spot",
 ];
 
+const QUICK_REPLANS = [
+  { label: "🌧️ Bad weather day", instruction: "Replan assuming heavy rain — swap outdoor activities for indoor ones, keep any booked stays/restaurants intact, and explain each swap briefly in personalizedMentions." },
+  { label: "💸 Cut budget by 20%", instruction: "Reduce total budget by 20%. Recompute budgetBreakdown realistically, suggest cheaper stays and meals, keep the same destinations where possible, and explain changes." },
+  { label: "🤒 Health issue — go slower", instruction: "I'm feeling unwell. Reduce pacing dramatically: fewer stops, longer rests, no high-effort activities, keep stays/restaurants intact, prefer comfort food and clinics nearby." },
+  { label: "⏱️ Flight delayed by half a day", instruction: "Day 1 starts 6 hours later than planned. Compress day 1, shift critical activities, preserve any booked items, and explain what moved." },
+  { label: "🚧 Closure / advisory", instruction: "Assume one major attraction in the itinerary is unexpectedly closed — pick the most touristy one, replace it with a great nearby alternative, and explain why." },
+];
+
 const ItineraryRefiner = ({ tripData, itinerary, onUpdate }: Props) => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,6 +111,24 @@ const ItineraryRefiner = ({ tripData, itinerary, onUpdate }: Props) => {
               </button>
             ))}
           </div>
+
+          <div className="mt-5 pt-5 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Dynamic replanning</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_REPLANS.map((q) => (
+                <button
+                  key={q.label}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => refine(q.instruction)}
+                  className="px-3 py-1.5 rounded-full bg-sunset/10 text-sunset text-xs font-medium hover:bg-sunset/20 transition-colors disabled:opacity-40"
+                >
+                  {q.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
         </motion.div>
       </div>
     </section>

@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 import { MapPin, Sparkles } from "lucide-react";
-import { travelImage, onImgError } from "@/lib/images";
+import SmartImage from "./SmartImage";
 
 interface Props { onGetStarted: () => void; }
 
 const FLOATING_DESTINATIONS = [
-  { name: "Manali", img: "manali,himalaya,mountains", className: "top-[18%] left-[6%] w-32 h-44 float-slow" },
-  { name: "Goa", img: "goa,beach,sunset", className: "top-[60%] left-[4%] w-28 h-36 float-slower" },
-  { name: "Kyoto", img: "kyoto,temple,japan", className: "top-[14%] right-[8%] w-32 h-44 float-slower" },
-  { name: "Varanasi", img: "varanasi,ghats,india", className: "top-[58%] right-[6%] w-28 h-36 float-slow" },
+  { name: "Manali", img: "Manali himalaya mountains", className: "top-[18%] left-[6%] w-32 h-44 float-slow" },
+  { name: "Goa", img: "Goa beach sunset", className: "top-[60%] left-[4%] w-28 h-36 float-slower" },
+  { name: "Kyoto", img: "Kyoto temple japan", className: "top-[14%] right-[8%] w-32 h-44 float-slower" },
+  { name: "Varanasi", img: "Varanasi ghats india", className: "top-[58%] right-[6%] w-28 h-36 float-slow" },
 ];
 
 const HeroSection = ({ onGetStarted }: Props) => {
@@ -26,14 +26,8 @@ const HeroSection = ({ onGetStarted }: Props) => {
           transition={{ delay: 1.2 + i * 0.15, duration: 0.8 }}
           className={`hidden lg:block absolute rounded-2xl overflow-hidden shadow-lift border border-border/60 ${d.className}`}
         >
-          <img
-            src={travelImage(d.img, 300, 400, i)}
-            onError={onImgError}
-            alt={d.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
+          <SmartImage query={d.img} alt={d.name} rounded="" className="w-full h-full" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent pointer-events-none" />
           <div className="absolute bottom-2 left-2 text-primary-foreground text-xs font-heading font-semibold tracking-wide">{d.name}</div>
         </motion.div>
       ))}
