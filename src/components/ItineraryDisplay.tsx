@@ -42,6 +42,7 @@ export interface GeneratedItinerary {
   costSavingTips?: CostSavingTip[];
   travelerStories?: TravelerStory[];
   checklist?: ChecklistData;
+  safetyTips?: string[];
   travelTips: string[];
 }
 
