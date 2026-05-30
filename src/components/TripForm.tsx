@@ -291,7 +291,42 @@ const TripForm = ({ onSubmit, isLoading }: TripFormProps) => {
             </div>
           </div>
 
-          {/* Start date + Days + Budget */}
+          {/* Gender + Women Safe Mode */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">Gender <span className="text-xs text-muted-foreground font-normal">· helps tailor safety</span></Label>
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  { v: "female", l: "Female" },
+                  { v: "male", l: "Male" },
+                  { v: "non-binary", l: "Non-binary" },
+                  { v: "prefer-not-to-say", l: "Prefer not to say" },
+                ] as { v: Gender; l: string }[]).map((o) => {
+                  const active = gender === o.v;
+                  return (
+                    <button key={o.v} type="button" onClick={() => setGender(o.v)}
+                      className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${active ? "bg-accent/10 border-accent text-foreground" : "bg-background border-border hover:border-accent/40 text-muted-foreground"}`}>
+                      {o.l}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <label className={`flex items-center justify-between gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${womenSafeMode ? "border-sunset bg-sunset/5" : "border-border bg-background hover:border-sunset/40"}`}>
+              <div className="flex items-start gap-3">
+                <Shield className={`w-5 h-5 mt-0.5 ${womenSafeMode ? "text-sunset" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="font-heading font-semibold text-sm">Women Safe Mode</p>
+                  <p className="text-xs text-muted-foreground leading-snug">Prioritize safer stays, well-lit routes, daytime activities & verified areas.</p>
+                </div>
+              </div>
+              <input type="checkbox" checked={womenSafeMode} onChange={(e) => setWomenSafeMode(e.target.checked)} className="sr-only" />
+              <div className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${womenSafeMode ? "bg-sunset" : "bg-muted"}`}>
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-background shadow transition-transform ${womenSafeMode ? "translate-x-5" : "translate-x-0.5"}`} />
+              </div>
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2"><CalendarDays className="w-4 h-4 text-accent" />Start date</Label>
