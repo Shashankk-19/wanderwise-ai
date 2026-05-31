@@ -19,10 +19,8 @@ const REQUIRED = [
 
 export function checkEnv(): EnvCheckResult {
   const env = import.meta.env as Record<string, string | undefined>;
-  console.log(import.meta.env.VITE_SUPABASE_URL);
-  console.log(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
   const missing = REQUIRED.filter((k) => !env[k] || String(env[k]).trim() === "");
-  return {
+  const result = {
     ok: missing.length === 0,
     missing,
     values: {
@@ -31,4 +29,8 @@ export function checkEnv(): EnvCheckResult {
       VITE_SUPABASE_PROJECT_ID: env.VITE_SUPABASE_PROJECT_ID,
     },
   };
+
+  console.info("[Wanderly] Runtime env", result.values);
+
+  return result;
 }
