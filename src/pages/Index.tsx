@@ -143,6 +143,9 @@ const Index = () => {
                   ) : null}
                   <TravelChecklist checklist={itinerary.checklist} destination={tripData.destination} />
                   <ThankYou onReplan={reset} destination={tripData.destination} />
+                  <p className="text-xs text-muted-foreground text-center mt-10 mb-6 px-6 max-w-2xl mx-auto">
+                    AI-generated content. Travel details, recommendations, and pricing may vary. Please verify important information from official sources.
+                  </p>
                 </div>
               )}
             </>
